@@ -244,11 +244,101 @@ Work (Œuvre)
 
 ---
 
-## Prochaines étapes
+---
 
-- **Étape 6** : Créer le premier endpoint PHP
-- **Étape 7** : Import des scènes depuis Notion
-- **Étape 8** : Interface React de lecture
+---
+
+## 8. Backend PHP - API REST
+
+### Structure backend
+
+```TEXT
+backend/
+├── Dockerfile                    # Image PHP avec extension PostgreSQL
+├── config/
+│   └── database.php             # Connexion PDO
+├── src/
+│   ├── Router.php               # Gestionnaire de routes
+│   └── Controllers/
+│       └── SceneController.php  # CRUD Scènes
+└── public/
+    └── index.php                # Point d'entrée API
+```
+
+### Rebuild du container PHP (si modifié)
+
+```bash
+docker compose build --no-cache php
+docker compose up -d
+```
+
+### Routes disponibles
+
+#### Base
+
+- `GET /` - Statut de l'API
+- `GET /health` - Test connexion PostgreSQL
+- `GET /works` - Liste toutes les œuvres
+
+#### Scènes (CRUD complet)
+
+- `GET /scenes` - Liste toutes les scènes
+- `GET /scenes/{id}` - Détails d'une scène
+- `POST /scenes` - Créer une nouvelle scène
+- `PUT /scenes/{id}` - Modifier une scène
+- `DELETE /scenes/{id}` - Supprimer une scène
+- `GET /chapters/{id}/scenes` - Scènes d'un chapitre
+
+### Exemples d'utilisation
+
+#### Créer un chapitre (prérequis)
+
+```bash
+docker exec -it story_postgres psql -U story_user -d story_app -c "
+INSERT INTO chapters (work_id, title, number, order_hint)
+VALUES ('00000000-0000-0000-0000-000000000001', 'Chapitre 1', 1, 1)
+RETURNING id;
+"
+```
+
+#### Créer une scène
+
+```bash
+curl -X POST http://localhost:8080/scenes \
+  -H "Content-Type: application/json" \
+  -d '{
+    "chapter_id": "UUID_DU_CHAPITRE",
+    "title": "Ma première scène",
+    "content_markdown": "# Titre\n\nContenu en **Markdown**.",
+    "order_hint": 1
+  }'
+```
+
+#### Lister les scènes
+
+```bash
+curl http://localhost:8080/scenes
+```
+
+#### Récupérer une scène
+
+```bash
+curl http://localhost:8080/scenes/UUID_DE_LA_SCENE
+```
+
+#### Modifier une scène
+
+```bash
+curl -X PUT http://localhost:8080/scenes/UUID_DE_LA_SCENE \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Nouveau titre"}'
+```
+
+#### Supprimer une scène
+
+```bash
+curl -X DELETE http://localhost:8080/scenes/UUID_DE_LA_SCENE
+```
 
 ---
 
