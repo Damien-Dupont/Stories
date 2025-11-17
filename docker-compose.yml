@@ -18,7 +18,9 @@ services:
       retries: 5
 
   php:
-    image: php:8.4-fpm-alpine
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: story_php
     working_dir: /var/www
     volumes:
