@@ -242,6 +242,46 @@ Work (Œuvre)
 - **is_sequential = true** : Scènes qui se suivent logiquement
 - **is_sequential = false** : Scènes simultanées (différents points de vue)
 
+### Scènes spéciales
+
+Le système supporte des scènes hors-chapitre :
+
+**Types de scènes :**
+
+- `scene_type = 'standard'` : Scène normale (dans un chapitre)
+- `scene_type = 'special'` : Scène spéciale (prologue, intermède, épilogue)
+
+**Label personnalisable :**
+
+- `custom_type_label` : "Prologue", "Intermède", "Épilogue", "Note de l'auteur"...
+
+**Ordre global :**
+
+- `sort_order` : Position dans la narration globale
+  - 0-99 : Préface, avant-propos
+  - 100-199 : Prologue
+  - 200+ : Chapitres (incréments de 100)
+  - 9000+ : Épilogue, postface
+
+**Emoji et image :**
+
+- `emoji` : Emoji illustrant la scène (🌙, ⚔️, 🏰...)
+- `image_url` : URL de l'image header
+
+**Exemple de prologue :**
+
+```json
+{
+  "chapter_id": null,
+  "scene_type": "special",
+  "custom_type_label": "Prologue",
+  "title": "Les origines",
+  "emoji": "🌅",
+  "sort_order": 100,
+  "content_markdown": "# Prologue\n\nIl était une fois..."
+}
+```
+
 ---
 
 ## 8. Backend PHP - API REST
