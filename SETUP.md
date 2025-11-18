@@ -244,10 +244,6 @@ Work (Œuvre)
 
 ---
 
----
-
----
-
 ## 8. Backend PHP - API REST
 
 ### Structure backend
@@ -341,6 +337,37 @@ curl -X DELETE http://localhost:8080/scenes/UUID_DE_LA_SCENE
 ```
 
 ---
+
+## 9. Migrations de base de données
+
+### Gérer les évolutions du schéma
+
+Le projet utilise un système de migrations versionné pour suivre les modifications de la BDD.
+
+### Voir l'état des migrations
+
+```bash
+docker exec -it story_php php /var/www/scripts/migrate.php status
+```
+
+### Appliquer les migrations en attente
+
+```bash
+docker exec -it story_php php /var/www/scripts/migrate.php up
+```
+
+### Structure d'une migration
+
+Les fichiers sont dans `database/migrations/` avec la nomenclature :
+
+- `YYYYMMDD_HHmm_description.sql`
+- Exemple : `20251117_1145_add_special_scenes.sql`
+
+### Créer une nouvelle migration
+
+1. Créer le fichier dans `database/migrations/`
+2. Utiliser le template avec `BEGIN/COMMIT` et `INSERT INTO schema_migrations`
+3. Appliquer avec `migrate.php up`
 
 ## Support
 

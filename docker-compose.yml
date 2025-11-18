@@ -25,6 +25,7 @@ services:
     working_dir: /var/www
     volumes:
       - ./backend:/var/www
+      - ./database:/database
     depends_on:
       postgres:
         condition: service_healthy
