@@ -53,6 +53,11 @@ class MigrationManager
      */
     public function getAvailableMigrations(): array
     {
+        if (!is_dir($this->migrationsDir)) {
+            echo "⚠️  Le dossier de migrations n'existe pas : {$this->migrationsDir}\n";
+            return [];
+        }
+
         $files = glob($this->migrationsDir . '*.sql');
         $migrations = [];
 
@@ -74,12 +79,25 @@ class MigrationManager
     }
 
     /**
+     * Calcule le checksum MD5 d'un fichier SQL
+     */
+    private function calculateChecksum(string $filepath): string
+    {
+        return md5_file($filepath);
+    }
+
+    /**
      * Applique les migrations en attente
      */
     public function migrate(): void
     {
         $applied = $this->getAppliedMigrations();
         $available = $this->getAvailableMigrations();
+
+        if (empty($available)) {
+            echo "⚠️  Aucun fichier de migration trouvé dans {$this->migrationsDir}\n";
+            return;
+        }
 
         $pending = array_filter($available, fn($m) => !in_array($m['version'], $applied));
 
@@ -93,18 +111,68 @@ class MigrationManager
         foreach ($pending as $migration) {
             echo "Applying {$migration['version']}: {$migration['description']}... ";
 
-            try {
+        try {
+                // 1. Lire le fichier SQL
                 $sql = file_get_contents($migration['path']);
-                $this->pdo->exec($sql);
-                echo "✓\n";
+
+                // 2. Nettoyer les anciennes commandes INSERT schema_migrations (si présentes)
+                $sql = $this->cleanOldMigrationInserts($sql);
+
+                // 3. Calculer le checksum
+                $checksum = $this->calculateChecksum($migration['path']);
+
+                // 4. Transaction pour appliquer la migration + enregistrer
+                $this->pdo->beginTransaction();
+
+                try {
+                    // Exécuter le SQL de la migration
+                    $this->pdo->exec($sql);
+
+                    // Enregistrer dans schema_migrations (géré automatiquement)
+                    $stmt = $this->pdo->prepare("
+                        INSERT INTO schema_migrations (version, description, script_name, checksum)
+                        VALUES (:version, :description, :script_name, :checksum)
+                    ");
+
+                    $stmt->execute([
+                        'version' => $migration['version'],
+                        'description' => $migration['description'],
+                        'script_name' => $migration['filename'],
+                        'checksum' => $checksum
+                    ]);
+
+                    $this->pdo->commit();
+                    echo "✓\n";
+                } catch (PDOException $e) {
+                    $this->pdo->rollBack();
+                    throw $e;
+                }
+
             } catch (PDOException $e) {
                 echo "✗\n";
                 echo "Erreur: " . $e->getMessage() . "\n";
+                echo "Migration: {$migration['filename']}\n";
                 exit(1);
             }
         }
 
         echo "\n✓ Toutes les migrations ont été appliquées.\n";
+    }
+
+    /**
+     * Nettoie les anciens INSERT INTO schema_migrations du SQL
+     * (pour rétrocompatibilité avec les anciennes migrations)
+     */
+    private function cleanOldMigrationInserts(string $sql): string
+    {
+        // Supprimer les lignes INSERT INTO schema_migrations
+        $sql = preg_replace(
+            '/INSERT\s+INTO\s+schema_migrations\s*\([^)]+\)\s*VALUES\s*\([^)]+\)\s*;/is',
+            '-- [Nettoyé] INSERT INTO schema_migrations (géré par migrate.php)',
+            $sql
+        );
+
+        return $sql;
     }
 
     /**
@@ -114,14 +182,72 @@ class MigrationManager
     {
         $applied = $this->getAppliedMigrations();
         $available = $this->getAvailableMigrations();
+        $pending = array_filter($available, fn($m) => !in_array($m['version'], $applied));
 
         echo "=== État des migrations ===\n\n";
-        echo "Appliquées: " . count($applied) . "\n";
-        echo "Disponibles: " . count($available) . "\n\n";
+        echo "Dossier: {$this->migrationsDir}\n\n";
+        echo "Total fichiers: " . count($available) . "\n";
+        echo "✓ Appliquées: " . count($applied) . "\n";
+        echo "⏳ En attente: " . count($pending) . "\n";
+
+        if (empty($available)) {
+            echo "⚠️  Aucune migration trouvée.\n";
+            return;
+        }
 
         foreach ($available as $migration) {
             $status = in_array($migration['version'], $applied) ? '✓' : '⏳';
             echo "{$status} {$migration['version']} - {$migration['description']}\n";
+        }
+    }
+
+    /**
+     * Vérifie l'intégrité des migrations appliquées
+     */
+    public function verify(): void
+    {
+        echo "=== Vérification de l'intégrité ===\n\n";
+
+        $stmt = $this->pdo->query('
+            SELECT version, script_name, checksum, applied_at
+            FROM schema_migrations
+            ORDER BY version
+        ');
+
+        $appliedMigrations = $stmt->fetchAll();
+
+        if (empty($appliedMigrations)) {
+            echo "Aucune migration appliquée.\n";
+            return;
+        }
+
+        $hasErrors = false;
+
+        foreach ($appliedMigrations as $migration) {
+            $filepath = $this->migrationsDir . $migration['script_name'];
+            $status = '✓';
+            $message = '';
+
+            if (!file_exists($filepath)) {
+                $status = '✗';
+                $message = 'Fichier manquant';
+                $hasErrors = true;
+            } elseif ($migration['checksum']) {
+                $currentChecksum = $this->calculateChecksum($filepath);
+                if ($currentChecksum !== $migration['checksum']) {
+                    $status = '⚠️';
+                    $message = 'Fichier modifié après application';
+                    $hasErrors = true;
+                }
+            }
+
+            echo "{$status} {$migration['version']} - {$migration['script_name']} {$message}\n";
+        }
+
+        if ($hasErrors) {
+            echo "\n⚠️  Des migrations ont été modifiées ou supprimées.\n";
+        } else {
+            echo "\n✓ Toutes les migrations sont intègres.\n";
         }
     }
 }
@@ -139,7 +265,15 @@ switch ($command) {
     case 'status':
         $manager->status();
         break;
+    case 'verify':
+        $manager->verify();
+        break;
     default:
-        echo "Usage: php migrate.php [up|status]\n";
+        echo "Usage: php migrate.php [up|status|verify]\n";
+        echo "\n";
+        echo "Commandes:\n";
+        echo "  up, migrate  - Applique les migrations en attente\n";
+        echo "  status       - Affiche l'état des migrations\n";
+        echo "  verify       - Vérifie l'intégrité des migrations\n";
         exit(1);
 }

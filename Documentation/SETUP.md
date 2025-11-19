@@ -380,20 +380,33 @@ curl -X DELETE http://localhost:8080/scenes/UUID_DE_LA_SCENE
 
 ## 9. Migrations de base de données
 
-### Gérer les évolutions du schéma
+1. **Gestion automatique de `schema_migrations`**
 
-Le projet utilise un système de migrations versionné pour suivre les modifications de la BDD.
+   - Plus besoin d'INSERT manuel dans les fichiers SQL
+   - Checksum MD5 calculé automatiquement
+   - Commande `verify` pour détecter les modifications
 
-### Voir l'état des migrations
+2. **Affichage clair du status**
+
+   - `Appliquées` : Migrations dans la BDD
+   - `En attente` : Migrations à appliquer
+   - `Total fichiers` : Fichiers SQL trouvés
+
+3. **Fichiers ignorés**
+   - `template.sql` et `template.sql.example` exclus automatiquement
+   - Seuls les fichiers au format `YYYYMMDD_HHmm_*.sql` sont pris en compte
+
+**Commandes disponibles :**
 
 ```bash
+# Voir l'état
 docker exec -it story_php php /var/www/scripts/migrate.php status
-```
 
-### Appliquer les migrations en attente
-
-```bash
+# Appliquer les migrations en attente
 docker exec -it story_php php /var/www/scripts/migrate.php up
+
+# Vérifier l'intégrité
+docker exec -it story_php php /var/www/scripts/migrate.php verify
 ```
 
 ### Structure d'une migration
