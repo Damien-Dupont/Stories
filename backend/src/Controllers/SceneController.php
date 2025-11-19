@@ -10,14 +10,24 @@ class SceneController
         try {
             $stmt = $pdo->query('
                 SELECT
-                    sc.id as scene_id, sc.title as scene_title,
-                    sc.content_markdown, sc.order_hint,
-                    sc.published_at, sc.created_at,
-                    ch.title as chapter_title, ch.id as chapter_id
-                FROM scenes sc
-                JOIN chapters ch ON ch.id = sc.chapter_id
-                ORDER BY ch.order_hint, sc.order_hint
-            ');
+                sc.id as scene_id,
+                sc.title as scene_title,
+                sc.content_markdown,
+                sc.scene_type,
+                sc.custom_type_label,
+                sc.sort_order,
+                sc.emoji,
+                sc.image_url,
+                sc.order_hint,
+                sc.published_at,
+                sc.created_at,
+                ch.title as chapter_title,
+                ch.id as chapter_id,
+                ch.number as chapter_number
+            FROM scenes sc
+            LEFT JOIN chapters ch ON ch.id = sc.chapter_id
+            ORDER BY sc.sort_order ASC, sc.order_hint ASC
+        ');
 
             $scenes = $stmt->fetchAll();
 
@@ -43,7 +53,7 @@ class SceneController
             $stmt = $pdo->prepare('
                 SELECT
                     sc.*,
-                    ch.title as chapter_title, ch.id as chapter_id,
+                    ch.title as chapter_title,
                     ch.number as chapter_number
                 FROM scenes sc
                 JOIN chapters ch ON ch.id = sc.chapter_id
@@ -84,28 +94,42 @@ class SceneController
         try {
             $input = json_decode(file_get_contents('php://input'), true);
 
-            // Validation
-            if (!isset($input['chapter_id'], $input['title'], $input['content_markdown'])) {
-                http_response_code(400);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Missing required fields: chapter_id, title, content_markdown'
-                ]);
-                return;
-            }
-
-            $stmt = $pdo->prepare('
-                INSERT INTO scenes (chapter_id, title, content_markdown, order_hint)
-                VALUES (:chapter_id, :title, :content_markdown, :order_hint)
-                RETURNING id, created_at
-            ');
-
-            $stmt->execute([
-                'chapter_id' => $input['chapter_id'],
-                'title' => $input['title'],
-                'content_markdown' => $input['content_markdown'],
-                'order_hint' => $input['order_hint'] ?? 0
+            // Validation minimale
+        if (!isset($input['title'], $input['content_markdown'])) {
+            http_response_code(400);
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Missing required fields: title, content_markdown'
             ]);
+            return;
+        }
+
+        // Validation cohérence scène spéciale
+        self::validateSpecialScene($input);
+
+        $stmt = $pdo->prepare('
+            INSERT INTO scenes (
+                chapter_id, title, content_markdown, order_hint,
+                scene_type, custom_type_label, sort_order, emoji, image_url
+            )
+            VALUES (
+                :chapter_id, :title, :content_markdown, :order_hint,
+                :scene_type, :custom_type_label, :sort_order, :emoji, :image_url
+            )
+            RETURNING id, created_at
+        ');
+
+           $stmt->execute([
+            'chapter_id' => $input['chapter_id'] ?? null,
+            'title' => $input['title'],
+            'content_markdown' => $input['content_markdown'],
+            'order_hint' => $input['order_hint'] ?? 0,
+            'scene_type' => $input['scene_type'] ?? 'standard',
+            'custom_type_label' => $input['custom_type_label'] ?? null,
+            'sort_order' => $input['sort_order'] ?? 0,
+            'emoji' => $input['emoji'] ?? null,
+            'image_url' => $input['image_url'] ?? null
+        ]);
 
             $result = $stmt->fetch();
 
@@ -132,63 +156,65 @@ class SceneController
      */
     public static function update(PDO $pdo, string $id): void
     {
-        try {
-            $input = json_decode(file_get_contents('php://input'), true);
+    try {
+        $input = json_decode(file_get_contents('php://input'), true);
 
-            $fields = [];
-            $params = ['id' => $id];
+        $fields = [];
+        $params = ['id' => $id];
 
-            if (isset($input['title'])) {
-                $fields[] = 'title = :title';
-                $params['title'] = $input['title'];
+        // Champs modifiables
+        $allowedFields = [
+            'title', 'content_markdown', 'order_hint',
+            'scene_type', 'custom_type_label', 'sort_order',
+            'emoji', 'image_url', 'chapter_id'
+        ];
+
+        foreach ($allowedFields as $field) {
+            if (isset($input[$field])) {
+                $fields[] = "$field = :$field";
+                $params[$field] = $input[$field];
             }
+        }
 
-            if (isset($input['content_markdown'])) {
-                $fields[] = 'content_markdown = :content_markdown';
-                $params['content_markdown'] = $input['content_markdown'];
-            }
+        // Validation cohérence scène spéciale
+        self::validateSpecialScene($input);
 
-            if (isset($input['order_hint'])) {
-                $fields[] = 'order_hint = :order_hint';
-                $params['order_hint'] = $input['order_hint'];
-            }
-
-            if (empty($fields)) {
-                http_response_code(400);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'No fields to update'
-                ]);
-                return;
-            }
-
-            $fields[] = 'updated_at = CURRENT_TIMESTAMP';
-            $sql = 'UPDATE scenes SET ' . implode(', ', $fields) . ' WHERE id = :id';
-
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute($params);
-
-            if ($stmt->rowCount() === 0) {
-                http_response_code(404);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Scene not found'
-                ]);
-                return;
-            }
-
-            echo json_encode([
-                'status' => 'ok',
-                'message' => 'Scene updated'
-            ]);
-        } catch (PDOException $e) {
-            http_response_code(500);
+        if (empty($fields)) {
+            http_response_code(400);
             echo json_encode([
                 'status' => 'error',
-                'message' => $e->getMessage()
+                'message' => 'No fields to update'
             ]);
+            return;
         }
+
+        $fields[] = 'updated_at = CURRENT_TIMESTAMP';
+        $sql = 'UPDATE scenes SET ' . implode(', ', $fields) . ' WHERE id = :id';
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+
+        if ($stmt->rowCount() === 0) {
+            http_response_code(404);
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Scene not found'
+            ]);
+            return;
+        }
+
+        echo json_encode([
+            'status' => 'ok',
+            'message' => 'Scene updated'
+        ]);
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ]);
     }
+}
 
     /**
      * DELETE /scenes/{id} - Supprimer une scène
@@ -248,4 +274,22 @@ class SceneController
             ]);
         }
     }
+
+    /**
+    * Valide qu'une scène spéciale n'a pas de chapter_id
+    * @throws InvalidArgumentException si validation échoue
+    */
+    private static function validateSpecialScene(array $input): void
+    {
+    if (isset($input['scene_type']) && $input['scene_type'] === 'special') {
+        if (isset($input['chapter_id']) && $input['chapter_id'] !== null) {
+            http_response_code(400);
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Special scenes cannot have a chapter_id'
+            ]);
+            exit; // ou throw new Exception()
+        }
+    }
+}
 }

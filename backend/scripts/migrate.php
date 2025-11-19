@@ -195,9 +195,8 @@ class MigrationManager
             return;
         }
 
-        foreach ($available as $migration) {
-            $status = in_array($migration['version'], $applied) ? '✓' : '⏳';
-            echo "{$status} {$migration['version']} - {$migration['description']}\n";
+        foreach ($pending as $migration) {
+            echo "⏳ {$migration['version']} - {$migration['description']}\n";
         }
     }
 
