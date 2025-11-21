@@ -26,6 +26,7 @@ services:
     volumes:
       - ./backend:/var/www
       - ./database:/database
+      - ./.env:/var/www/.env
     depends_on:
       postgres:
         condition: service_healthy
@@ -33,7 +34,7 @@ services:
       APP_ENV: ${APP_ENV}
       DB_HOST: ${DB_HOST}
       DB_PORT: 5432
-      DB_NAME: ${DB_NAME}
+      DB_NAME: ${DB_NAME:-story_app}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
 

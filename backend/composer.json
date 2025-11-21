@@ -1,0 +1,16 @@
+{
+    "name": "story-app/backend",
+    "authors": [
+        {
+            "name": "Damien",
+            "email": "90845231+Damien-Dupont@users.noreply.github.com"
+        }
+    ],
+    "require-dev": {
+        "phpunit/phpunit": "^10",
+        "guzzlehttp/guzzle": "^7.10"
+    },
+    "require": {
+        "vlucas/phpdotenv": "^5.6"
+    }
+}
