@@ -95,19 +95,33 @@ class SceneController
             $input = json_decode(file_get_contents('php://input'), true);
 
             // Validation minimale
-        if (!isset($input['title'], $input['content_markdown'])) {
-            http_response_code(400);
-            echo json_encode([
-                'status' => 'error',
-                'message' => 'Missing required fields: title, content_markdown'
-            ]);
-            return;
-        }
+            if (!isset($input['content_markdown'])) {
+                http_response_code(400);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Missing required fields: content_markdown'
+                ]);
+                return;
+            }
 
-        // Validation cohérence scène spéciale
-        self::validateSpecialScene($input);
+            // Génération automatique du titre si absent
+            if (empty($input['title'])) {
+                if (isset($input['scene_type']) && $input['scene_type'] === 'special' && !empty($input['custom_type_label'])) {
+                    // Scène spéciale : utiliser le custom_type_label
+                    $input['title'] = $input['custom_type_label'];
+                } elseif (isset($input['order_hint'])) {
+                    // Scène standard : "Scène {order_hint}"
+                    $input['title'] = 'Scène ' . $input['order_hint'];
+                } else {
+                    // Fallback : "Scène {sort_order}"
+                    $input['title'] = 'Scène ' . ($input['sort_order'] ?? 0);
+                }
+            }
 
-        $stmt = $pdo->prepare('
+            // Validation cohérence scène spéciale
+            self::validateSpecialScene($input);
+
+            $stmt = $pdo->prepare('
             INSERT INTO scenes (
                 chapter_id, title, content_markdown, order_hint,
                 scene_type, custom_type_label, sort_order, emoji, image_url
@@ -119,17 +133,17 @@ class SceneController
             RETURNING id, created_at
         ');
 
-           $stmt->execute([
-            'chapter_id' => $input['chapter_id'] ?? null,
-            'title' => $input['title'],
-            'content_markdown' => $input['content_markdown'],
-            'order_hint' => $input['order_hint'] ?? 0,
-            'scene_type' => $input['scene_type'] ?? 'standard',
-            'custom_type_label' => $input['custom_type_label'] ?? null,
-            'sort_order' => $input['sort_order'] ?? 0,
-            'emoji' => $input['emoji'] ?? null,
-            'image_url' => $input['image_url'] ?? null
-        ]);
+            $stmt->execute([
+                'chapter_id' => $input['chapter_id'] ?? null,
+                'title' => $input['title'],
+                'content_markdown' => $input['content_markdown'],
+                'order_hint' => $input['order_hint'] ?? 0,
+                'scene_type' => $input['scene_type'] ?? 'standard',
+                'custom_type_label' => $input['custom_type_label'] ?? null,
+                'sort_order' => $input['sort_order'] ?? 0,
+                'emoji' => $input['emoji'] ?? null,
+                'image_url' => $input['image_url'] ?? null
+            ]);
 
             $result = $stmt->fetch();
 
@@ -156,65 +170,71 @@ class SceneController
      */
     public static function update(PDO $pdo, string $id): void
     {
-    try {
-        $input = json_decode(file_get_contents('php://input'), true);
+        try {
+            $input = json_decode(file_get_contents('php://input'), true);
 
-        $fields = [];
-        $params = ['id' => $id];
+            $fields = [];
+            $params = ['id' => $id];
 
-        // Champs modifiables
-        $allowedFields = [
-            'title', 'content_markdown', 'order_hint',
-            'scene_type', 'custom_type_label', 'sort_order',
-            'emoji', 'image_url', 'chapter_id'
-        ];
+            // Champs modifiables
+            $allowedFields = [
+                'title',
+                'content_markdown',
+                'order_hint',
+                'scene_type',
+                'custom_type_label',
+                'sort_order',
+                'emoji',
+                'image_url',
+                'chapter_id'
+            ];
 
-        foreach ($allowedFields as $field) {
-            if (isset($input[$field])) {
-                $fields[] = "$field = :$field";
-                $params[$field] = $input[$field];
+            foreach ($allowedFields as $field) {
+                if (isset($input[$field])) {
+                    $fields[] = "$field = :$field";
+                    $params[$field] = $input[$field];
+                }
             }
-        }
 
-        // Validation cohérence scène spéciale
-        self::validateSpecialScene($input);
+            // Validation cohérence scène spéciale
+            self::validateSpecialScene($input);
 
-        if (empty($fields)) {
-            http_response_code(400);
+            if (empty($fields)) {
+                http_response_code(400);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'No fields to update'
+                ]);
+                return;
+            }
+
+            $fields[] = 'updated_at = CURRENT_TIMESTAMP';
+            $sql = 'UPDATE scenes SET ' . implode(', ', $fields) . ' WHERE id = :id';
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+
+            if ($stmt->rowCount() === 0) {
+                http_response_code(404);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Scene not found'
+                ]);
+                return;
+            }
+
+            echo json_encode([
+                'status' => 'ok',
+                'message' => 'Scene updated'
+            ]);
+        } catch (PDOException $e) {
+            http_response_code(500);
             echo json_encode([
                 'status' => 'error',
-                'message' => 'No fields to update'
+                'message' => $e->getMessage()
             ]);
-            return;
         }
-
-        $fields[] = 'updated_at = CURRENT_TIMESTAMP';
-        $sql = 'UPDATE scenes SET ' . implode(', ', $fields) . ' WHERE id = :id';
-
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-
-        if ($stmt->rowCount() === 0) {
-            http_response_code(404);
-            echo json_encode([
-                'status' => 'error',
-                'message' => 'Scene not found'
-            ]);
-            return;
-        }
-
-        echo json_encode([
-            'status' => 'ok',
-            'message' => 'Scene updated'
-        ]);
-    } catch (PDOException $e) {
-        http_response_code(500);
-        echo json_encode([
-            'status' => 'error',
-            'message' => $e->getMessage()
-        ]);
     }
-}
 
     /**
      * DELETE /scenes/{id} - Supprimer une scène
@@ -276,20 +296,20 @@ class SceneController
     }
 
     /**
-    * Valide qu'une scène spéciale n'a pas de chapter_id
-    * @throws InvalidArgumentException si validation échoue
-    */
+     * Valide qu'une scène spéciale n'a pas de chapter_id
+     * @throws InvalidArgumentException si validation échoue
+     */
     private static function validateSpecialScene(array $input): void
     {
-    if (isset($input['scene_type']) && $input['scene_type'] === 'special') {
-        if (isset($input['chapter_id']) && $input['chapter_id'] !== null) {
-            http_response_code(400);
-            echo json_encode([
-                'status' => 'error',
-                'message' => 'Special scenes cannot have a chapter_id'
-            ]);
-            exit; // ou throw new Exception()
+        if (isset($input['scene_type']) && $input['scene_type'] === 'special') {
+            if (isset($input['chapter_id']) && $input['chapter_id'] !== null) {
+                http_response_code(400);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Special scenes cannot have a chapter_id'
+                ]);
+                exit; // ou throw new Exception()
+            }
         }
     }
-}
 }
