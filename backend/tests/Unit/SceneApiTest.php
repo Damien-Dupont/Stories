@@ -82,6 +82,8 @@ class SceneApiTest extends TestCase
         $this->persistentData['chapterId'] = $stmt->fetchColumn();
     }
 
+    // CRUD TESTS :: CREATION
+
     /**
      * @test
      * Teste la création d'une scène standard via l'API
@@ -168,107 +170,6 @@ class SceneApiTest extends TestCase
 
     /**
      * @test
-     * Teste la récupération d'une scène unique via l'API
-     */
-    public function it_should_get_single_scene()
-    {
-        // 1. ARRANGE : Créer une scène d'abord (il faut quelque chose à récupérer)
-        $sceneToGetTitle = 'Ma scène à récupérer';
-        $sceneToGetContent = '# Contenu';
-        $sceneToCreate = [
-            'chapter_id' => $this->persistentData['chapterId'],
-            'title' => $sceneToGetTitle,
-            'content_markdown' => $sceneToGetContent,
-            'sort_order' => 200
-        ];
-        $sceneToGetID = $this->createTestScene($sceneToCreate);
-
-        // 2. ACT : Récupérer la scène via GET
-        $response = $this->client->get('/scenes/' . $sceneToGetID);
-
-        // 3. ASSERT : Vérifier la réponse
-        $this->assertEquals(200, $response->getStatusCode());
-
-        $data = json_decode($response->getBody(), true);
-        $this->assertEquals('ok', $data['status']);
-
-        // Vérifier les données de la scène
-        $this->assertEquals($sceneToGetTitle, $data['data']['title']);
-        $this->assertEquals($sceneToGetContent, $data['data']['content_markdown']);
-        $this->assertEquals($this->persistentData['chapterId'], $data['data']['chapter_id']);
-
-        // Vérifier que le titre du chapitre est inclus (grâce au LEFT JOIN)
-        $this->assertEquals('Test Chapter', $data['data']['chapter_title']);
-    }
-
-    /**
-     * @test
-     * Teste le retour d'erreur 404 d'un GET sur id inconnu
-     */
-    public function it_should_return_404_when_scene_not_found()
-    {
-        // ACT : Essayer de récupérer un UUID qui n'existe pas
-        $response = $this->client->get('/scenes/00000000-0000-0000-0000-000000000000');
-
-        // ASSERT
-        $this->assertEquals(404, $response->getStatusCode());
-
-        $data = json_decode($response->getBody(), true);
-        $this->assertEquals('error', $data['status']);
-        $this->assertStringContainsString('not found', strtolower($data['message']));
-    }
-
-    /**
-     * @test
-     * Teste la suppression d'une scène
-     */
-    public function it_should_delete_a_scene()
-    {
-        // ARRANGE : créer une scène à supprimer, vérifier qu'elle existe
-        $sceneToDeleteID = $this->createTestScene(['title' => 'Scène à supprimer']);
-        $getResponse = $this->client->get('/scenes/' . $sceneToDeleteID);
-
-        // ACT : supprimer une scène via son ID
-        $delResponse = $this->client->delete('/scenes/' . $sceneToDeleteID);
-
-        // ASSERT
-        $this->assertEquals(200, $delResponse->getStatusCode());
-
-        $getResponse = $this->client->get('/scenes/' . $sceneToDeleteID);
-        $this->assertEquals(404, $getResponse->getStatusCode());
-
-        $data = json_decode($getResponse->getBody(), true);
-        $this->assertEquals('error', $data['status']);
-        $this->assertStringContainsString('not found', strtolower($data['message']));
-    }
-
-    /**
-     * @test
-     * Teste le rejet de création d'une scène spéciale liée à un chapitre
-     */
-    public function it_should_reject_special_scene_with_chapter_id()
-    {
-        // ARRANGE
-        $invalidScene = [
-            'scene_type' => 'special',
-            'chapter_id' => $this->persistentData['chapterId'], // ← Interdit !
-            'title' => 'Prologue invalide',
-            'content_markdown' => '# Test'
-        ];
-
-        // ACT
-        $response = $this->client->post('/scenes', ['json' => $invalidScene]);
-
-        // ASSERT
-        $this->assertEquals(400, $response->getStatusCode());
-
-        $data = json_decode($response->getBody(), true);
-        $this->assertEquals('error', $data['status']);
-        $this->assertStringContainsString('special scenes cannot have a chapter_id', strtolower($data['message']));
-    }
-
-    /**
-     * @test
      * Teste la génération auto d'un titre lors de la création d'une scène sans titre
      */
     public function it_should_auto_generate_title_when_missing()
@@ -296,6 +197,31 @@ class SceneApiTest extends TestCase
         $scene = $stmt->fetch();
 
         $this->assertEquals('Scène 3', $scene['title']);
+    }
+
+    /**
+     * @test
+     * Teste le rejet de création d'une scène spéciale liée à un chapitre
+     */
+    public function it_should_reject_special_scene_with_chapter_id()
+    {
+        // ARRANGE
+        $invalidScene = [
+            'scene_type' => 'special',
+            'chapter_id' => $this->persistentData['chapterId'], // ← Interdit !
+            'title' => 'Prologue invalide',
+            'content_markdown' => '# Test'
+        ];
+
+        // ACT
+        $response = $this->client->post('/scenes', ['json' => $invalidScene]);
+
+        // ASSERT
+        $this->assertEquals(400, $response->getStatusCode());
+
+        $data = json_decode($response->getBody(), true);
+        $this->assertEquals('error', $data['status']);
+        $this->assertStringContainsString('special scenes cannot have a chapter_id', strtolower($data['message']));
     }
 
     /**
@@ -349,6 +275,106 @@ class SceneApiTest extends TestCase
         // ASSERT
         $this->assertEquals(400, $response->getStatusCode());
     }
+
+    // CRUD TESTS :: READ
+
+    /**
+     * @test
+     * Teste la récupération d'une scène unique via l'API
+     */
+    public function it_should_get_single_scene()
+    {
+        // 1. ARRANGE : Créer une scène d'abord (il faut quelque chose à récupérer)
+        $sceneToGetTitle = 'Ma scène à récupérer';
+        $sceneToGetContent = '# Contenu';
+        $sceneToCreate = [
+            'chapter_id' => $this->persistentData['chapterId'],
+            'title' => $sceneToGetTitle,
+            'content_markdown' => $sceneToGetContent,
+            'sort_order' => 200
+        ];
+        $sceneToGetID = $this->createTestScene($sceneToCreate);
+
+        // 2. ACT : Récupérer la scène via GET
+        $response = $this->client->get('/scenes/' . $sceneToGetID);
+
+        // 3. ASSERT : Vérifier la réponse
+        $this->assertEquals(200, $response->getStatusCode());
+
+        $data = json_decode($response->getBody(), true);
+        $this->assertEquals('ok', $data['status']);
+
+        // Vérifier les données de la scène
+        $this->assertEquals($sceneToGetTitle, $data['data']['title']);
+        $this->assertEquals($sceneToGetContent, $data['data']['content_markdown']);
+        $this->assertEquals($this->persistentData['chapterId'], $data['data']['chapter_id']);
+
+        // Vérifier que le titre du chapitre est inclus (grâce au LEFT JOIN)
+        $this->assertEquals('Test Chapter', $data['data']['chapter_title']);
+    }
+
+    /**
+     * @test
+     * Teste le retour d'erreur 404 d'un GET sur id inconnu
+     */
+    public function it_should_return_404_when_scene_not_found()
+    {
+        // ACT : Essayer de récupérer un UUID qui n'existe pas
+        $response = $this->client->get('/scenes/00000000-0000-0000-0000-000000000000');
+
+        // ASSERT
+        $this->assertEquals(404, $response->getStatusCode());
+
+        $data = json_decode($response->getBody(), true);
+        $this->assertEquals('error', $data['status']);
+        $this->assertStringContainsString('not found', strtolower($data['message']));
+    }
+
+    /**
+     * @test
+     * Teste le listing de toutes les scènes d'un chapitre, dans l'ordre
+     */
+    public function it_should_list_all_scenes_ordered_by_sort_order()
+    {
+        // ARRANGE : Créer 3 scènes avec différents sort_order
+        $this->createTestScene([
+            'title' => 'Chapitre 1 - Scène 1',
+            'sort_order' => 200
+        ]);
+
+        $prologueId = $this->client->post('/scenes', [
+            'json' => [
+                'scene_type' => 'special',
+                'custom_type_label' => 'Prologue',
+                'title' => 'Prologue',
+                'content_markdown' => '# Prologue',
+                'sort_order' => 100
+            ]
+        ]);
+
+        $this->createTestScene([
+            'title' => 'Chapitre 1 - Scène 2',
+            'sort_order' => 200,
+            'order_hint' => 2
+        ]);
+
+        // ACT
+        $response = $this->client->get('/scenes');
+
+        // ASSERT
+        $this->assertEquals(200, $response->getStatusCode());
+
+        $data = json_decode($response->getBody(), true);
+        $this->assertEquals('ok', $data['status']);
+        $this->assertCount(3, $data['data']);
+
+        // Vérifier l'ordre
+        $this->assertEquals('Prologue', $data['data'][0]['scene_title']);
+        $this->assertEquals('Chapitre 1 - Scène 1', $data['data'][1]['scene_title']);
+        $this->assertEquals('Chapitre 1 - Scène 2', $data['data'][2]['scene_title']);
+    }
+
+    // CRUD TESTS :: UPDATE
 
     /**
      * @test
@@ -410,7 +436,7 @@ class SceneApiTest extends TestCase
 
     /**
      * @test
-     * Teste le retour d'erreur 404 d'un UPDATE sur id inconnu
+     * Teste le retour d'erreur 404 d'un UPDATE sur ID inconnu
      */
     public function it_should_return_404_when_updating_non_existent_scene()
     {
@@ -423,48 +449,43 @@ class SceneApiTest extends TestCase
         $this->assertEquals(404, $response->getStatusCode());
     }
 
+    // CRUD TESTS :: DELETE
+
     /**
      * @test
-     * Teste le listing de toutes les scènes d'un chapitre, dans l'ordre
+     * Teste la suppression d'une scène
      */
-    public function it_should_list_all_scenes_ordered_by_sort_order()
+    public function it_should_delete_a_scene()
     {
-        // ARRANGE : Créer 3 scènes avec différents sort_order
-        $this->createTestScene([
-            'title' => 'Chapitre 1 - Scène 1',
-            'sort_order' => 200
-        ]);
+        // ARRANGE : créer une scène à supprimer, vérifier qu'elle existe
+        $sceneToDeleteID = $this->createTestScene(['title' => 'Scène à supprimer']);
+        $getResponse = $this->client->get('/scenes/' . $sceneToDeleteID);
 
-        $prologueId = $this->client->post('/scenes', [
-            'json' => [
-                'scene_type' => 'special',
-                'custom_type_label' => 'Prologue',
-                'title' => 'Prologue',
-                'content_markdown' => '# Prologue',
-                'sort_order' => 100
-            ]
-        ]);
-
-        $this->createTestScene([
-            'title' => 'Chapitre 1 - Scène 2',
-            'sort_order' => 200,
-            'order_hint' => 2
-        ]);
-
-        // ACT
-        $response = $this->client->get('/scenes');
+        // ACT : supprimer une scène via son ID
+        $delResponse = $this->client->delete('/scenes/' . $sceneToDeleteID);
 
         // ASSERT
-        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals(200, $delResponse->getStatusCode());
 
-        $data = json_decode($response->getBody(), true);
-        $this->assertEquals('ok', $data['status']);
-        $this->assertCount(3, $data['data']);
+        $getResponse = $this->client->get('/scenes/' . $sceneToDeleteID);
+        $this->assertEquals(404, $getResponse->getStatusCode());
 
-        // Vérifier l'ordre
-        $this->assertEquals('Prologue', $data['data'][0]['scene_title']);
-        $this->assertEquals('Chapitre 1 - Scène 1', $data['data'][1]['scene_title']);
-        $this->assertEquals('Chapitre 1 - Scène 2', $data['data'][2]['scene_title']);
+        $data = json_decode($getResponse->getBody(), true);
+        $this->assertEquals('error', $data['status']);
+        $this->assertStringContainsString('not found', strtolower($data['message']));
+    }
+
+    /**
+     * @test
+     * Teste le retour d'erreur à la suppression d'une scène inexistante
+     */
+    public function it_should_return_404_when_deleting_non_existent_scene()
+    {
+        // ACT : supprimer une scène via son ID
+        $delResponse = $this->client->delete('/scenes/00000000-0000-0000-0000-000000000000');
+
+        // ASSERT
+        $this->assertEquals(404, $delResponse->getStatusCode());
     }
 }
 
