@@ -88,7 +88,7 @@ class SceneApiTest extends TestCase
      * @test
      * Teste la création d'une scène standard via l'API
      */
-    public function it_should_create_a_standard_scene()
+    public function CREATE__it_should_create_a_standard_scene()
     {
         // Données à envoyer
         $sceneToCreate = [
@@ -125,9 +125,9 @@ class SceneApiTest extends TestCase
 
     /**
      * @test
-     * Teste la création d'une scène standard via l'API
+     * Teste la création d'une scène spéciale via l'API
      */
-    public function it_should_create_a_special_scene_prologue()
+    public function CREATE__it_should_create_a_special_scene_prologue()
     {
         // Variables du test
         $prologueTitle = 'Avant le texte, le prologue';
@@ -172,7 +172,7 @@ class SceneApiTest extends TestCase
      * @test
      * Teste la génération auto d'un titre lors de la création d'une scène sans titre
      */
-    public function it_should_auto_generate_title_when_missing()
+    public function CREATE__it_should_auto_generate_title_when_missing()
     {
         // ARRANGE
         $sceneWithoutTitle = [
@@ -203,7 +203,7 @@ class SceneApiTest extends TestCase
      * @test
      * Teste le rejet de création d'une scène spéciale liée à un chapitre
      */
-    public function it_should_reject_special_scene_with_chapter_id()
+    public function CREATE__it_should_reject_special_scene_with_chapter_id()
     {
         // ARRANGE
         $invalidScene = [
@@ -228,7 +228,7 @@ class SceneApiTest extends TestCase
      * @test
      * Teste l'utilisation du custom_type_label comme titre à la création d'une scène spéciale sans titre
      */
-    public function it_should_use_custom_type_label_as_title_for_special_scene()
+    public function CREATE__it_should_use_custom_type_label_as_title_for_special_scene()
     {
         // ARRANGE
         $prologueWithoutTitle = [
@@ -260,7 +260,7 @@ class SceneApiTest extends TestCase
      * @test
      * Teste le rejet de création d'une scène sans contenu
      */
-    public function it_should_reject_scene_without_content_markdown()
+    public function CREATE__it_should_reject_scene_without_content_markdown()
     {
         // ARRANGE
         $sceneWithoutContent = [
@@ -282,7 +282,7 @@ class SceneApiTest extends TestCase
      * @test
      * Teste la récupération d'une scène unique via l'API
      */
-    public function it_should_get_single_scene()
+    public function READ__it_should_get_single_scene()
     {
         // 1. ARRANGE : Créer une scène d'abord (il faut quelque chose à récupérer)
         $sceneToGetTitle = 'Ma scène à récupérer';
@@ -317,7 +317,7 @@ class SceneApiTest extends TestCase
      * @test
      * Teste le retour d'erreur 404 d'un GET sur id inconnu
      */
-    public function it_should_return_404_when_scene_not_found()
+    public function READ__it_should_return_404_when_scene_not_found()
     {
         // ACT : Essayer de récupérer un UUID qui n'existe pas
         $response = $this->client->get('/scenes/00000000-0000-0000-0000-000000000000');
@@ -334,7 +334,7 @@ class SceneApiTest extends TestCase
      * @test
      * Teste le listing de toutes les scènes d'un chapitre, dans l'ordre
      */
-    public function it_should_list_all_scenes_ordered_by_sort_order()
+    public function READ__it_should_list_all_scenes_ordered_by_sort_order()
     {
         // ARRANGE : Créer 3 scènes avec différents sort_order
         $this->createTestScene([
@@ -380,7 +380,7 @@ class SceneApiTest extends TestCase
      * @test
      * Teste la mise à jour du titre d'une scène
      */
-    public function it_should_update_scene_title()
+    public function UPDATE__it_should_update_scene_title()
     {
         // ARRANGE
         $sceneId = $this->createTestScene(['title' => 'Titre original']);
@@ -405,7 +405,7 @@ class SceneApiTest extends TestCase
      * @test
      * Teste la mise à jour de plusieurs propriétés d'une scène
      */
-    public function it_should_update_multiple_scene_fields()
+    public function UPDATE__it_should_update_multiple_scene_fields()
     {
         // ARRANGE
         $sceneId = $this->createTestScene([
@@ -438,7 +438,7 @@ class SceneApiTest extends TestCase
      * @test
      * Teste le retour d'erreur 404 d'un UPDATE sur ID inconnu
      */
-    public function it_should_return_404_when_updating_non_existent_scene()
+    public function UPDATE__it_should_return_404_when_updating_non_existent_scene()
     {
         // ACT
         $response = $this->client->put('/scenes/00000000-0000-0000-0000-000000000000', [
@@ -455,7 +455,7 @@ class SceneApiTest extends TestCase
      * @test
      * Teste la suppression d'une scène
      */
-    public function it_should_delete_a_scene()
+    public function DELETE__it_should_delete_a_scene()
     {
         // ARRANGE : créer une scène à supprimer, vérifier qu'elle existe
         $sceneToDeleteID = $this->createTestScene(['title' => 'Scène à supprimer']);
@@ -479,7 +479,7 @@ class SceneApiTest extends TestCase
      * @test
      * Teste le retour d'erreur à la suppression d'une scène inexistante
      */
-    public function it_should_return_404_when_deleting_non_existent_scene()
+    public function DELETE__it_should_return_404_when_deleting_non_existent_scene()
     {
         // ACT : supprimer une scène via son ID
         $delResponse = $this->client->delete('/scenes/00000000-0000-0000-0000-000000000000');
