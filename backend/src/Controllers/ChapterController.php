@@ -45,8 +45,11 @@ class ChapterController
         try {
             $stmt = $pdo->prepare('
                 SELECT
-                    ch.*
-                    FROM chapters ch
+                    ch.*,
+                    ep.title as episode_title,
+                    ep.number as episode_number
+                FROM chapters ch
+                LEFT JOIN episodes ep ON ch.episode_id = ep.id
                 WHERE ch.id = :id
             ');
 
@@ -138,129 +141,100 @@ class ChapterController
         }
     }
 
-    // /**
-    //  * PUT /scenes/{id} - Modifier un chapitre
-    //  */
     /**
-     * PUT /chapters/{id} - Stub : Not Implemented (TDD friendly)
+     * PUT /scenes/{id} - Modifier un chapitre
      */
     public static function update(PDO $pdo, string $id): void
     {
-        http_response_code(501); // Not Implemented
-        echo json_encode([
-            'status' => 'not_implemented',
-            'message' => 'Chapter update not implemented yet'
-        ], JSON_UNESCAPED_UNICODE);
+        try {
+            $input = json_decode(file_get_contents('php://input'), true);
+
+            $fields = [];
+            $params = ['id' => $id];
+
+            // Champs modifiables
+            $allowedFields = [
+                'title',
+                'number',
+                'order_hint',
+                'episode_id'
+            ];
+
+            foreach ($allowedFields as $field) {
+                if (isset($input[$field])) {
+                    $fields[] = "$field = :$field";
+                    $params[$field] = $input[$field];
+                }
+            }
+
+            if (empty($fields)) {
+                http_response_code(400);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'No fields to update'
+                ]);
+                return;
+            }
+
+            //  $fields[] = 'updated_at = CURRENT_TIMESTAMP';
+            // TODO: modifier BDD pour ajouter updated_at dans la table Chapitre
+            $sql = 'UPDATE chapters SET ' . implode(', ', $fields) . ' WHERE id = :id';
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+
+            if ($stmt->rowCount() === 0) {
+                http_response_code(404);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Chapter not found'
+                ]);
+                return;
+            }
+
+            echo json_encode([
+                'status' => 'ok',
+                'message' => 'Chapter updated'
+            ]);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ]);
+        }
     }
-    // public static function update(PDO $pdo, string $id): void
-    // {
-    //     try {
-    //         $input = json_decode(file_get_contents('php://input'), true);
-
-    //         $fields = [];
-    //         $params = ['id' => $id];
-
-    //         // Champs modifiables
-    //         $allowedFields = [
-    //             'title',
-    //             'content_markdown',
-    //             'order_hint',
-    //             'scene_type',
-    //             'custom_type_label',
-    //             'sort_order',
-    //             'emoji',
-    //             'image_url',
-    //             'chapter_id'
-    //         ];
-
-    //         foreach ($allowedFields as $field) {
-    //             if (isset($input[$field])) {
-    //                 $fields[] = "$field = :$field";
-    //                 $params[$field] = $input[$field];
-    //             }
-    //         }
-
-    //         // Validation cohérence scène spéciale
-    //         self::validateSpecialScene($input);
-
-    //         if (empty($fields)) {
-    //             http_response_code(400);
-    //             echo json_encode([
-    //                 'status' => 'error',
-    //                 'message' => 'No fields to update'
-    //             ]);
-    //             return;
-    //         }
-
-    //         $fields[] = 'updated_at = CURRENT_TIMESTAMP';
-    //         $sql = 'UPDATE scenes SET ' . implode(', ', $fields) . ' WHERE id = :id';
-
-    //         $stmt = $pdo->prepare($sql);
-    //         $stmt->execute($params);
-
-    //         if ($stmt->rowCount() === 0) {
-    //             http_response_code(404);
-    //             echo json_encode([
-    //                 'status' => 'error',
-    //                 'message' => 'Scene not found'
-    //             ]);
-    //             return;
-    //         }
-
-    //         echo json_encode([
-    //             'status' => 'ok',
-    //             'message' => 'Scene updated'
-    //         ]);
-    //     } catch (PDOException $e) {
-    //         http_response_code(500);
-    //         echo json_encode([
-    //             'status' => 'error',
-    //             'message' => $e->getMessage()
-    //         ]);
-    //     }
-    // }
 
     /**
-     * DELETE /scenes/{id} - Supprimer un chapitre
-     */
-    /**
-     * DELETE /chapters/{id} - Stub : Not Implemented (TDD friendly)
+     * DELETE /chapters/{id} - Supprimer un chapitre
      */
     public static function destroy(PDO $pdo, string $id): void
     {
-        http_response_code(501); // Not Implemented
-        echo json_encode([
-            'status' => 'not_implemented',
-            'message' => 'Chapter destroy not implemented yet'
-        ], JSON_UNESCAPED_UNICODE);
+        try {
+            $stmt = $pdo->prepare('DELETE FROM chapters WHERE id = :id');
+            $stmt->execute(['id' => $id]);
+
+            if ($stmt->rowCount() === 0) {
+                http_response_code(404);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Chapter not found'
+                ]);
+                return;
+            }
+
+            echo json_encode([
+                'status' => 'ok',
+                'message' => 'Chapter deleted'
+            ]);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ]);
+        }
     }
-    // public static function destroy(PDO $pdo, string $id): void
-    // {
-    //     try {
-    //         $stmt = $pdo->prepare('DELETE FROM scenes WHERE id = :id');
-    //         $stmt->execute(['id' => $id]);
-
-    //         if ($stmt->rowCount() === 0) {
-    //             http_response_code(404);
-    //             echo json_encode([
-    //                 'status' => 'error',
-    //                 'message' => 'Scene not found'
-    //             ]);
-    //             return;
-    //         }
-
-    //         echo json_encode([
-    //             'status' => 'ok',
-    //             'message' => 'Scene deleted'
-    //         ]);
-    //     } catch (PDOException $e) {
-    //         http_response_code(500);
-    //         echo json_encode([
-    //             'status' => 'error',
-    //             'message' => $e->getMessage()
-    //         ]);
-    //     }
-    // }
 
     // /**
     //  * GET /chapters/{id}/scenes - Scènes d'un chapitre

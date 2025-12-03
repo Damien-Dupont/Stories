@@ -178,9 +178,9 @@ class ChapterApiTest extends TestCase
     //     // Vérifier en BDD que le titre a été auto-généré
     //     $stmt = $this->pdo->prepare('SELECT title FROM scenes WHERE id = :id');
     //     $stmt->execute(['id' => $sceneId]);
-    //     $scene = $stmt->fetch();
+    //     $chapter = $stmt->fetch();
 
-    //     $this->assertEquals('Scène 3', $scene['title']);
+    //     $this->assertEquals('Scène 3', $chapter['title']);
     // }
 
     // /**
@@ -220,7 +220,7 @@ class ChapterApiTest extends TestCase
             'order_hint' => 5
         ]);
 
-        // 2. ACT : Récupérer la scène via GET
+        // 2. ACT : Récupérer le chapitre via GET
         $response = $this->client->get('/chapters/' . $chapterToGetID);
 
         // 3. ASSERT : Vérifier la réponse
@@ -229,13 +229,13 @@ class ChapterApiTest extends TestCase
         $data = json_decode($response->getBody(), true);
         $this->assertEquals('ok', $data['status']);
 
-        // Vérifier les données de la scène
+        // Vérifier les données du chapitre
         $this->assertEquals($chapterToGetTitle, $data['data']['title']);
         $this->assertEquals(5, $data['data']['number']);
         $this->assertEquals($this->persistentData['workId'], $data['data']['work_id']);
 
-        // Vérifier que le titre du chapitre est inclus (grâce au LEFT JOIN)
-        $this->assertEquals('Test Chapter', $data['data']['chapter_title']);
+        // Vérifier que le titre de l'épisode est inclus (grâce au LEFT JOIN)
+        $this->assertEquals(null, $data['data']['episode_title']);
     }
 
     // /**
@@ -299,32 +299,32 @@ class ChapterApiTest extends TestCase
     //     $this->assertEquals('Chapitre 1 - Scène 2', $data['data'][2]['scene_title']);
     // }
 
-    // // CRUD TESTS :: UPDATE
+    // CRUD TESTS :: UPDATE
 
-    // /**
-    //  * @test
-    //  * Teste la mise à jour du titre d'un chapitre
-    //  */
-    // public function UPDATE__it_should_update_chapter_title()
-    // {
-    //     // ARRANGE
-    //     $sceneId = $this->createTestChapter(['title' => 'Titre original']);
+    /**
+     * @test
+     * Teste la mise à jour du titre d'un chapitre
+     */
+    public function UPDATE__it_should_update_chapter_title()
+    {
+        // ARRANGE
+        $chapterId = $this->createTestChapter(['title' => 'Titre original']);
 
-    //     // ACT
-    //     $response = $this->client->put('/scenes/' . $sceneId, [
-    //         'json' => ['title' => 'Titre modifié']
-    //     ]);
+        // ACT
+        $response = $this->client->put('/chapters/' . $chapterId, [
+            'json' => ['title' => 'Titre modifié']
+        ]);
 
-    //     // ASSERT
-    //     $this->assertEquals(200, $response->getStatusCode());
+        // ASSERT
+        $this->assertEquals(200, $response->getStatusCode());
 
-    //     // Vérifier en BDD
-    //     $stmt = $this->pdo->prepare('SELECT title FROM scenes WHERE id = :id');
-    //     $stmt->execute(['id' => $sceneId]);
-    //     $scene = $stmt->fetch();
+        // Vérifier en BDD
+        $stmt = $this->pdo->prepare('SELECT title FROM chapters WHERE id = :id');
+        $stmt->execute(['id' => $chapterId]);
+        $chapter = $stmt->fetch();
 
-    //     $this->assertEquals('Titre modifié', $scene['title']);
-    // }
+        $this->assertEquals('Titre modifié', $chapter['title']);
+    }
 
     // /**
     //  * @test
@@ -352,11 +352,11 @@ class ChapterApiTest extends TestCase
 
     //     $stmt = $this->pdo->prepare('SELECT * FROM scenes WHERE id = :id');
     //     $stmt->execute(['id' => $sceneId]);
-    //     $scene = $stmt->fetch();
+    //     $chapter = $stmt->fetch();
 
-    //     $this->assertEquals('Nouveau titre', $scene['title']);
-    //     $this->assertEquals(150, $scene['sort_order']);
-    //     $this->assertEquals('🔥', $scene['emoji']);
+    //     $this->assertEquals('Nouveau titre', $chapter['title']);
+    //     $this->assertEquals(150, $chapter['sort_order']);
+    //     $this->assertEquals('🔥', $chapter['emoji']);
     // }
 
     // /**
@@ -376,42 +376,42 @@ class ChapterApiTest extends TestCase
 
     // // CRUD TESTS :: DELETE
 
-    // /**
-    //  * @test
-    //  * Teste la suppression d'une scène
-    //  */
-    // public function it_should_delete_a_scene()
-    // {
-    //     // ARRANGE : créer une scène à supprimer, vérifier qu'elle existe
-    //     $sceneToDeleteID = $this->createTestChapter(['title' => 'Scène à supprimer']);
-    //     $getResponse = $this->client->get('/scenes/' . $sceneToDeleteID);
+    /**
+     * @test
+     * Teste la suppression d'un chapitre
+     */
+    public function DELETE__it_should_delete_a_chapter()
+    {
+        // ARRANGE : créer un chapitre à supprimer, vérifier qu'il existe
+        $chapterToDeleteID = $this->createTestChapter(['title' => 'Chapitre à supprimer']);
+        $getResponse = $this->client->get('/chapters/' . $chapterToDeleteID);
 
-    //     // ACT : supprimer une scène via son ID
-    //     $delResponse = $this->client->delete('/scenes/' . $sceneToDeleteID);
+        // ACT : supprimer un chapitre via son ID
+        $delResponse = $this->client->delete('/chapters/' . $chapterToDeleteID);
 
-    //     // ASSERT
-    //     $this->assertEquals(200, $delResponse->getStatusCode());
+        // ASSERT
+        $this->assertEquals(200, $delResponse->getStatusCode());
 
-    //     $getResponse = $this->client->get('/scenes/' . $sceneToDeleteID);
-    //     $this->assertEquals(404, $getResponse->getStatusCode());
+        $getResponse = $this->client->get('/chapters/' . $chapterToDeleteID);
+        $this->assertEquals(404, $getResponse->getStatusCode());
 
-    //     $data = json_decode($getResponse->getBody(), true);
-    //     $this->assertEquals('error', $data['status']);
-    //     $this->assertStringContainsString('not found', strtolower($data['message']));
-    // }
+        $data = json_decode($getResponse->getBody(), true);
+        $this->assertEquals('error', $data['status']);
+        $this->assertStringContainsString('not found', strtolower($data['message']));
+    }
 
-    // /**
-    //  * @test
-    //  * Teste le retour d'erreur à la suppression d'une scène inexistante
-    //  */
-    // public function it_should_return_404_when_deleting_non_existent_scene()
-    // {
-    //     // ACT : supprimer une scène via son ID
-    //     $delResponse = $this->client->delete('/scenes/00000000-0000-0000-0000-000000000000');
+    /**
+     * @test
+     * Teste le retour d'erreur à la suppression d'un chapitre inexistant
+     */
+    public function DELETE__it_should_return_404_when_deleting_non_existent_chapter()
+    {
+        // ACT : supprimer un chapitre via son ID
+        $delResponse = $this->client->delete('/chapters/00000000-0000-0000-0000-000000000000');
 
-    //     // ASSERT
-    //     $this->assertEquals(404, $delResponse->getStatusCode());
-    // }
+        // ASSERT
+        $this->assertEquals(404, $delResponse->getStatusCode());
+    }
 }
 
 

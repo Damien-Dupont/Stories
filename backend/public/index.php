@@ -71,8 +71,8 @@ $router->get('/works', function (PDO $pdo) {
 $router->get('/chapters', [ChapterController::class, 'index']);
 $router->get('/chapters/{id}', [ChapterController::class, 'show']);
 $router->post('/chapters', [ChapterController::class, 'create']);
-// $router->put('/chapters/{id}', [ChapterController::class, 'update']);
-// $router->delete('/chapters/{id}', [ChapterController::class, 'destroy']);
+$router->put('/chapters/{id}', [ChapterController::class, 'update']);
+$router->delete('/chapters/{id}', [ChapterController::class, 'destroy']);
 
 // Routes CRUD Scènes
 $router->get('/scenes', [SceneController::class, 'index']);
