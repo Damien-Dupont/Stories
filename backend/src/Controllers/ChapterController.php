@@ -79,7 +79,7 @@ class ChapterController
     }
 
     /**
-     * POST /chapter - Créer un nouveau chapitre
+     * POST /chapters - Créer un nouveau chapitre
      * Body JSON: {"chapter_id": "uuid", "title": "...", "content_markdown": "...", "order_hint": 0}
      */
     public static function create(PDO $pdo): void
@@ -142,7 +142,7 @@ class ChapterController
     }
 
     /**
-     * PUT /scenes/{id} - Modifier un chapitre
+     * PUT /chapters/{id} - Modifier un chapitre
      */
     public static function update(PDO $pdo, string $id): void
     {

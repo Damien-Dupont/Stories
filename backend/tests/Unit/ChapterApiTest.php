@@ -52,13 +52,19 @@ class ChapterApiTest extends TestCase
         $defaults = [
             'title' => 'Test Work',
             'description' => 'any description',
-            'author_id' => 'author00-0000-4000-0000-000000000000',
+            // 'author_id' => '',
             'published' => true,
             'episode_label' => 'Épisode',
             'chapter_label' => 'Chapitre'
         ];
 
         $workData = array_merge($defaults, $data);
+
+        // $stmt = $this->pdo->prepare("
+        //     INSERT INTO works (title, description, author_id, published, episode_label, chapter_label)
+        //     VALUES (:title, :description, :author_id, :published, :episode_label, :chapter_label)
+        //     RETURNING id
+        // ");
 
         $stmt = $this->pdo->prepare("
             INSERT INTO works (title, description, published, episode_label, chapter_label)
@@ -238,66 +244,70 @@ class ChapterApiTest extends TestCase
         $this->assertEquals(null, $data['data']['episode_title']);
     }
 
-    // /**
-    //  * @test
-    //  * Teste le retour d'erreur 404 d'un GET sur id inconnu
-    //  */
-    // public function it_should_return_404_when_scene_not_found()
-    // {
-    //     // ACT : Essayer de récupérer un UUID qui n'existe pas
-    //     $response = $this->client->get('/scenes/00000000-0000-0000-0000-000000000000');
+    /**
+     * @test
+     * Teste le retour d'erreur 404 d'un GET sur id inconnu
+     */
+    public function READ__it_should_return_404_when_chapter_not_found()
+    {
+        // ACT : Essayer de récupérer un UUID qui n'existe pas
+        $response = $this->client->get('/chapters/00000000-0000-0000-0000-000000000000');
 
-    //     // ASSERT
-    //     $this->assertEquals(404, $response->getStatusCode());
+        // ASSERT
+        $this->assertEquals(404, $response->getStatusCode());
 
-    //     $data = json_decode($response->getBody(), true);
-    //     $this->assertEquals('error', $data['status']);
-    //     $this->assertStringContainsString('not found', strtolower($data['message']));
-    // }
+        $data = json_decode($response->getBody(), true);
+        $this->assertEquals('error', $data['status']);
+        $this->assertStringContainsString('not found', strtolower($data['message']));
+    }
 
-    // /**
-    //  * @test
-    //  * Teste le listing de toutes les scènes d'un chapitre, dans l'ordre
-    //  */
-    // public function it_should_list_all_scenes_ordered_by_sort_order()
-    // {
-    //     // ARRANGE : Créer 3 scènes avec différents sort_order
-    //     $this->createTestChapter([
-    //         'title' => 'Chapitre 1 - Scène 1',
-    //         'sort_order' => 200
-    //     ]);
+    /**
+     * @test
+     * Teste le listing de tous les chapitres d'un épisode, dans l'ordre
+     */
+    public function READ__it_should_list_all_chapters_ordered_by_sort_order()
+    {
+        // ARRANGE : Créer 3 chapitres avec différents sort_order
+        $WorkId = $this->createTestWork([
+            'title' => 'Testing Book'
+        ]);
 
-    //     $prologueId = $this->client->post('/scenes', [
-    //         'json' => [
-    //             'scene_type' => 'special',
-    //             'custom_type_label' => 'Prologue',
-    //             'title' => 'Prologue',
-    //             'content_markdown' => '# Prologue',
-    //             'sort_order' => 100
-    //         ]
-    //     ]);
+        $this->createTestChapter([
+            'title' => 'Chapitre second - Le début',
+            'number' => 100,
+            'work_id' => $WorkId
+        ]);
 
-    //     $this->createTestChapter([
-    //         'title' => 'Chapitre 1 - Scène 2',
-    //         'sort_order' => 200,
-    //         'order_hint' => 2
-    //     ]);
+        $this->createTestChapter([
+            'title' => 'Chapitre ultime - La fin',
+            'number' => 300,
+            'order_hint' => 3,
+            'work_id' => $WorkId
+        ]);
 
-    //     // ACT
-    //     $response = $this->client->get('/scenes');
+        $this->createTestChapter([
+            'title' => 'Chapitre pénultième - Le milieu',
+            'number' => 200,
+            'order_hint' => 2,
+            'work_id' => $WorkId
+        ]);
 
-    //     // ASSERT
-    //     $this->assertEquals(200, $response->getStatusCode());
+        // ACT
+        $response = $this->client->get('/chapters');
 
-    //     $data = json_decode($response->getBody(), true);
-    //     $this->assertEquals('ok', $data['status']);
-    //     $this->assertCount(3, $data['data']);
+        // ASSERT
+        $this->assertEquals(200, $response->getStatusCode());
 
-    //     // Vérifier l'ordre
-    //     $this->assertEquals('Prologue', $data['data'][0]['scene_title']);
-    //     $this->assertEquals('Chapitre 1 - Scène 1', $data['data'][1]['scene_title']);
-    //     $this->assertEquals('Chapitre 1 - Scène 2', $data['data'][2]['scene_title']);
-    // }
+        $data = json_decode($response->getBody(), true);
+        $this->assertEquals('ok', $data['status']);
+        $this->assertCount(4, $data['data']);
+
+        // Vérifier l'ordre
+        $this->assertEquals('Chapitre premier', $data['data'][0]['chapter_title']);
+        $this->assertEquals('Chapitre second - Le début', $data['data'][1]['chapter_title']);
+        $this->assertEquals('Chapitre pénultième - Le milieu', $data['data'][2]['chapter_title']);
+        $this->assertEquals('Chapitre ultime - La fin', $data['data'][3]['chapter_title']);
+    }
 
     // CRUD TESTS :: UPDATE
 
@@ -359,22 +369,22 @@ class ChapterApiTest extends TestCase
     //     $this->assertEquals('🔥', $chapter['emoji']);
     // }
 
-    // /**
-    //  * @test
-    //  * Teste le retour d'erreur 404 d'un UPDATE sur ID inconnu
-    //  */
-    // public function it_should_return_404_when_updating_non_existent_scene()
-    // {
-    //     // ACT
-    //     $response = $this->client->put('/scenes/00000000-0000-0000-0000-000000000000', [
-    //         'json' => ['title' => 'Nouveau titre']
-    //     ]);
+    /**
+     * @test
+     * Teste le retour d'erreur 404 d'un UPDATE sur ID inconnu
+     */
+    public function UPDATE__it_should_return_404_when_updating_non_existent_scene()
+    {
+        // ACT
+        $response = $this->client->put('/chapters/00000000-0000-0000-0000-000000000000', [
+            'json' => ['title' => 'Nouveau titre']
+        ]);
 
-    //     // ASSERT
-    //     $this->assertEquals(404, $response->getStatusCode());
-    // }
+        // ASSERT
+        $this->assertEquals(404, $response->getStatusCode());
+    }
 
-    // // CRUD TESTS :: DELETE
+    // CRUD TESTS :: DELETE
 
     /**
      * @test
