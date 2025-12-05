@@ -3,7 +3,7 @@
 class ChapterController
 {
     /**
-     * GET /chapter - Liste tous les chapitres
+     * GET /chapters - Liste tous les chapitres
      */
     public static function index(PDO $pdo): void
     {
