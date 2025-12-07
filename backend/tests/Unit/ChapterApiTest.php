@@ -25,8 +25,6 @@ class ChapterApiTest extends ApiTestCase
         $response = $this->client->post('/chapters', [
             'json' => $chapterToCreate
         ]);
-        echo "\nStatus: " . $response->getStatusCode();
-        echo "\nBody: " . $response->getBody() . "\n";
 
         // Vérifications
         $this->assertEquals(201, $response->getStatusCode());
