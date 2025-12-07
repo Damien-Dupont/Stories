@@ -1,121 +1,9 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
-use GuzzleHttp\Client;
+require_once __DIR__ . '/../ApiTestCase.php';
 
-class ChapterApiTest extends TestCase
+class ChapterApiTest extends ApiTestCase
 {
-    private Client $client;
-    private PDO $pdo;
-    private array $persistentData = [];
-
-    protected function setUp(): void
-    {
-        // Client HTTP pour tester l'API
-        $this->client = new Client([
-            'base_uri' => 'http://nginx',
-            'http_errors' => false // Ne pas throw sur 4xx/5xx
-        ]);
-
-        // Connexion BDD pour setup et cleanup
-        $this->pdo = new PDO(
-            sprintf(
-                'pgsql:host=%s;port=%s;dbname=%s',
-                $_ENV['DB_HOST'],
-                $_ENV['DB_PORT'],
-                $_ENV['DB_NAME']
-            ),
-            $_ENV['DB_USER'],
-            $_ENV['DB_PASSWORD'],
-            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-        );
-
-        // Nettoyer la BDD avant chaque test
-        $this->cleanDatabase();
-
-        // Créer les données de base (œuvre + chapitre)
-        $this->seedTestData();
-    }
-    private function cleanDatabase(): void
-    {
-        $this->pdo->exec('TRUNCATE scenes, chapters, works RESTART IDENTITY CASCADE');
-    }
-
-    /**
-     * Helper : Créer une oeuvre de test
-     * @param array $data Données personnalisées (écrase les valeurs par défaut)
-     * @return string UUID de l'oeuvre créée
-     */
-    private function createTestWork(array $data = []): string
-    // id, title, description, author_id, published, episode_label, chapter_label, created_at, updated_at
-    {
-        $defaults = [
-            'title' => 'Test Work',
-            'description' => 'any description',
-            // 'author_id' => '',
-            'published' => true,
-            'episode_label' => 'Épisode',
-            'chapter_label' => 'Chapitre'
-        ];
-
-        $workData = array_merge($defaults, $data);
-
-        // $stmt = $this->pdo->prepare("
-        //     INSERT INTO works (title, description, author_id, published, episode_label, chapter_label)
-        //     VALUES (:title, :description, :author_id, :published, :episode_label, :chapter_label)
-        //     RETURNING id
-        // ");
-
-        $stmt = $this->pdo->prepare("
-            INSERT INTO works (title, description, published, episode_label, chapter_label)
-            VALUES (:title, :description, :published, :episode_label, :chapter_label)
-            RETURNING id
-        ");
-
-        $stmt->execute($workData);
-        return $stmt->fetchColumn();
-    }
-
-    /**
-     * Helper : Créer un chapitre de test
-     */
-    private function createTestChapter(array $data = []): string
-    {
-        $defaults = [
-            'work_id' => $this->persistentData['workId'],
-            'episode_id' => null,
-            'title' => 'Test Chapter',
-            'number' => 1,
-            'order_hint' => 1
-        ];
-
-        $response = $this->client->post('/chapters', [
-            'json' => array_merge($defaults, $data)
-        ]);
-
-        return json_decode($response->getBody(), true)['data']['id'];
-    }
-
-    private function seedTestData(): void
-    {
-        // Créer une œuvre
-        $stmt = $this->pdo->query("
-            INSERT INTO works (title, published)
-            VALUES ('Test Work', true)
-            RETURNING id
-        ");
-        $this->persistentData['workId'] = $stmt->fetchColumn();
-        // $this->persistentData['workId'] = $this->createTestWork();
-
-        // Créer un chapitre
-        $stmt = $this->pdo->prepare("
-            INSERT INTO chapters (work_id, title, number, order_hint)
-            VALUES (:work_id, 'Chapitre premier', 1, 1)
-            RETURNING id
-        ");
-        $stmt->execute(['work_id' => $this->persistentData['workId']]);
-        $this->persistentData['chapterOneId'] = $stmt->fetchColumn();
-    }
 
     // CRUD TESTS :: CREATION
 
@@ -137,6 +25,8 @@ class ChapterApiTest extends TestCase
         $response = $this->client->post('/chapters', [
             'json' => $chapterToCreate
         ]);
+        echo "\nStatus: " . $response->getStatusCode();
+        echo "\nBody: " . $response->getBody() . "\n";
 
         // Vérifications
         $this->assertEquals(201, $response->getStatusCode());
@@ -275,7 +165,7 @@ class ChapterApiTest extends TestCase
         $this->assertCount(4, $data['data']);
 
         // Vérifier l'ordre
-        $this->assertEquals('Chapitre premier', $data['data'][0]['chapter_title']);
+        $this->assertEquals('Test Chapter', $data['data'][0]['chapter_title']);
         $this->assertEquals('Chapitre second - Le début', $data['data'][1]['chapter_title']);
         $this->assertEquals('Chapitre pénultième - Le milieu', $data['data'][2]['chapter_title']);
         $this->assertEquals('Chapitre ultime - La fin', $data['data'][3]['chapter_title']);

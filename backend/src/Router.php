@@ -10,27 +10,27 @@ class Router
         $this->pdo = $pdo;
     }
 
-    public function get(string $path, callable $handler): void
+    public function get(string $path, callable|array $handler): void
     {
         $this->addRoute('GET', $path, $handler);
     }
 
-    public function post(string $path, callable $handler): void
+    public function post(string $path, callable|array $handler): void
     {
         $this->addRoute('POST', $path, $handler);
     }
 
-    public function put(string $path, callable $handler): void
+    public function put(string $path, callable|array $handler): void
     {
         $this->addRoute('PUT', $path, $handler);
     }
 
-    public function delete(string $path, callable $handler): void
+    public function delete(string $path, callable|array $handler): void
     {
         $this->addRoute('DELETE', $path, $handler);
     }
 
-    private function addRoute(string $method, string $path, callable $handler): void
+    private function addRoute(string $method, string $path, callable|array $handler): void
     {
         $this->routes[] = [
             'method' => $method,

@@ -1,85 +1,13 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
-use GuzzleHttp\Client;
+require_once __DIR__ . '/../ApiTestCase.php';
 
-class SceneApiTest extends TestCase
+class SceneApiTest extends ApiTestCase
 {
-    private Client $client;
-    private PDO $pdo;
-    private array $persistentData = [];
-
-    protected function setUp(): void
+    protected function seedTestData(): void
     {
-        // Client HTTP pour tester l'API
-        $this->client = new Client([
-            'base_uri' => 'http://nginx',
-            'http_errors' => false // Ne pas throw sur 4xx/5xx
-        ]);
-
-        // Connexion BDD pour setup et cleanup
-        $this->pdo = new PDO(
-            sprintf(
-                'pgsql:host=%s;port=%s;dbname=%s',
-                $_ENV['DB_HOST'],
-                $_ENV['DB_PORT'],
-                $_ENV['DB_NAME']
-            ),
-            $_ENV['DB_USER'],
-            $_ENV['DB_PASSWORD'],
-            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-        );
-
-        // Nettoyer la BDD avant chaque test
-        $this->cleanDatabase();
-
-        // Créer les données de base (œuvre + chapitre)
-        $this->seedTestData();
-    }
-    private function cleanDatabase(): void
-    {
-        $this->pdo->exec('TRUNCATE scenes, chapters, works RESTART IDENTITY CASCADE');
-    }
-
-    /**
-     * Helper : Créer une scène de test
-     * @param array $data Données personnalisées (écrase les valeurs par défaut)
-     * @return string UUID de la scène créée
-     */
-    private function createTestScene(array $data = []): string
-    {
-        $defaults = [
-            'chapter_id' => $this->persistentData['chapterId'],
-            'title' => 'Test Scene',
-            'content_markdown' => '# Content',
-            'sort_order' => 200
-        ];
-
-        $response = $this->client->post('/scenes', [
-            'json' => array_merge($defaults, $data)
-        ]);
-
-        return json_decode($response->getBody(), true)['data']['id'];
-    }
-
-    private function seedTestData(): void
-    {
-        // Créer une œuvre
-        $stmt = $this->pdo->query("
-            INSERT INTO works (title, published)
-            VALUES ('Test Work', true)
-            RETURNING id
-        ");
-        $this->persistentData['workId'] = $stmt->fetchColumn();
-
-        // Créer un chapitre
-        $stmt = $this->pdo->prepare("
-            INSERT INTO chapters (work_id, title, number, order_hint)
-            VALUES (:work_id, 'Test Chapter', 1, 1)
-            RETURNING id
-        ");
-        $stmt->execute(['work_id' => $this->persistentData['workId']]);
-        $this->persistentData['chapterId'] = $stmt->fetchColumn();
+        parent::seedTestData();
+        $this->persistentData['chapterId'] = $this->createTestChapter();
     }
 
     // CRUD TESTS :: CREATION
