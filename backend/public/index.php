@@ -67,6 +67,13 @@ $router->get('/works', function (PDO $pdo) {
 //$router->get('/episodes/{id}/chapters', [ChapterController::class, 'byEpisode']);
 // $router->get('/works/{id}/episodes', [EpisodeController::class,'byWork']);
 
+// Routes CRUD Works
+$router->get('/works', [WorkController::class, 'index']);
+// $router->get('/chapters/{id}', [WorkController::class, 'show']);
+// $router->post('/chapters', [WorkController::class, 'create']);
+// $router->put('/chapters/{id}', [WorkController::class, 'update']);
+// $router->delete('/chapters/{id}', [WorkController::class, 'destroy']);
+
 // Routes CRUD Chapters
 $router->get('/chapters', [ChapterController::class, 'index']);
 $router->get('/chapters/{id}', [ChapterController::class, 'show']);

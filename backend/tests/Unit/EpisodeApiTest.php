@@ -3,7 +3,7 @@
 use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Client;
 
-class WorkApiTest extends TestCase
+class EpisodeApiTest extends TestCase
 {
     private Client $client;
     private PDO $pdo;
@@ -38,12 +38,9 @@ class WorkApiTest extends TestCase
     }
 
     // TODO: tests à ajouter
-// it_should_create_a_work
-// it_should_get_a_work_by_id
-// it_should_list_all_works
-// it_should_update_work_title
-// it_should_delete_work
-// it_should_set_published_to_false_by_default
-// it_should_reject_work_without_title
+// it_should_create_an_episode
+// it_should_list_episodes_by_work
+// it_should_update_episode
+// it_should_delete_episode
 
 }

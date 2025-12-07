@@ -160,53 +160,25 @@ class ChapterApiTest extends TestCase
 
     // /**
     //  * @test
-    //  * Teste la génération auto d'un titre lors de la création d'une scène sans titre
+    //  * Teste la génération auto d'un titre lors de la création d'un chapitre sans titre
     //  */
     // public function it_should_auto_generate_title_when_missing()
+
+
+    // /**
+    //  * @test
+    //  * Teste le rejet de création d'un chapitre sans work_id
+    //  */
+    // public function it_should_reject_chapter_without_work_id()
     // {
-    //     // ARRANGE
-    //     $sceneWithoutTitle = [
-    //         'chapter_id' => $this->persistentData['chapterId'],
-    //         'content_markdown' => '# Contenu',
-    //         'order_hint' => 3
-    //         // Pas de title
-    //     ];
-
-    //     // ACT
-    //     $response = $this->client->post('/scenes', ['json' => $sceneWithoutTitle]);
-
-    //     // ASSERT
-    //     $this->assertEquals(201, $response->getStatusCode());
-
-    //     $data = json_decode($response->getBody(), true);
-    //     $sceneId = $data['data']['id'];
-
-    //     // Vérifier en BDD que le titre a été auto-généré
-    //     $stmt = $this->pdo->prepare('SELECT title FROM scenes WHERE id = :id');
-    //     $stmt->execute(['id' => $sceneId]);
-    //     $chapter = $stmt->fetch();
-
-    //     $this->assertEquals('Scène 3', $chapter['title']);
     // }
 
     // /**
     //  * @test
-    //  * Teste le rejet de création d'une scène sans contenu
+    //  * Teste le la valuer par défaut de order_hint à la création d'un chapitre
     //  */
-    // public function it_should_reject_scene_without_content_markdown()
+    // public function it_should_set_order_hint_to_zero_by_default()
     // {
-    //     // ARRANGE
-    //     $sceneWithoutContent = [
-    //         'chapter_id' => $this->persistentData['chapterId'],
-    //         'title' => 'Titre sans contenu'
-    //         // Manque : content_markdown
-    //     ];
-
-    //     // ACT
-    //     $response = $this->client->post('/scenes', ['json' => $sceneWithoutContent]);
-
-    //     // ASSERT
-    //     $this->assertEquals(400, $response->getStatusCode());
     // }
 
     // CRUD TESTS :: READ
@@ -338,35 +310,10 @@ class ChapterApiTest extends TestCase
 
     // /**
     //  * @test
-    //  * Teste la mise à jour de plusieurs propriétés d'une scène
+    //  * Teste la mise à jour de plusieurs propriétés d'un chapitre
     //  */
-    // public function it_should_update_multiple_scene_fields()
+    // public function it_should_update_multiple_chapter_fields()
     // {
-    //     // ARRANGE
-    //     $sceneId = $this->createTestChapter([
-    //         'title' => 'Original',
-    //         'sort_order' => 200
-    //     ]);
-
-    //     // ACT
-    //     $response = $this->client->put('/scenes/' . $sceneId, [
-    //         'json' => [
-    //             'title' => 'Nouveau titre',
-    //             'sort_order' => 150,
-    //             'emoji' => '🔥'
-    //         ]
-    //     ]);
-
-    //     // ASSERT
-    //     $this->assertEquals(200, $response->getStatusCode());
-
-    //     $stmt = $this->pdo->prepare('SELECT * FROM scenes WHERE id = :id');
-    //     $stmt->execute(['id' => $sceneId]);
-    //     $chapter = $stmt->fetch();
-
-    //     $this->assertEquals('Nouveau titre', $chapter['title']);
-    //     $this->assertEquals(150, $chapter['sort_order']);
-    //     $this->assertEquals('🔥', $chapter['emoji']);
     // }
 
     /**
@@ -422,6 +369,19 @@ class ChapterApiTest extends TestCase
         // ASSERT
         $this->assertEquals(404, $delResponse->getStatusCode());
     }
+
+    // TODO: tests fonctionnels à ajouter
+    // it_should_list_chapters_by_work
+    // GET /works/{id}/chapters → Seulement les chapitres de cette œuvre
+    // Nécessite la route byWork()
+
+    // it_should_update_chapter_episode_id
+    // Rattacher un chapitre à un épisode (mettre à jour episode_id)
+
+    // it_should_cascade_delete_scenes_when_deleting_chapter
+    // Supprimer un chapitre → Vérifie que ses scènes sont aussi supprimées
+    // (Déjà géré par ON DELETE CASCADE en SQL, mais bon à tester)
+
 }
 
 
