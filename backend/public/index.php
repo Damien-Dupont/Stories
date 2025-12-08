@@ -20,7 +20,7 @@ require_once __DIR__ . '/../src/Router.php';
 require_once __DIR__ . '/../src/Controllers/SceneController.php';
 require_once __DIR__ . '/../src/Controllers/ChapterController.php';
 //require_once __DIR__ . '/../src/Controllers/EpisodeController.php';
-//require_once __DIR__ . '/../src/Controllers/WorkController.php';
+require_once __DIR__ . '/../src/Controllers/WorkController.php';
 
 // Charger la connexion BDD
 $pdo = require_once __DIR__ . '/../config/database.php';
@@ -54,14 +54,6 @@ $router->get('/health', function (PDO $pdo) {
     }
 });
 
-$router->get('/works', function (PDO $pdo) {
-    $stmt = $pdo->query('SELECT * FROM works ORDER BY created_at DESC');
-    echo json_encode([
-        'status' => 'ok',
-        'data' => $stmt->fetchAll()
-    ]);
-});
-
 // Routes relationnelles
 //$router->get('/chapters/{id}/scenes', [SceneController::class, 'byChapter']);
 //$router->get('/episodes/{id}/chapters', [ChapterController::class, 'byEpisode']);
@@ -69,10 +61,10 @@ $router->get('/works', function (PDO $pdo) {
 
 // Routes CRUD Works
 $router->get('/works', [WorkController::class, 'index']);
-// $router->get('/chapters/{id}', [WorkController::class, 'show']);
-// $router->post('/chapters', [WorkController::class, 'create']);
-// $router->put('/chapters/{id}', [WorkController::class, 'update']);
-// $router->delete('/chapters/{id}', [WorkController::class, 'destroy']);
+// $router->get('/works/{id}', [WorkController::class, 'show']);
+$router->post('/works', [WorkController::class, 'create']);
+// $router->put('/works/{id}', [WorkController::class, 'update']);
+// $router->delete('/works/{id}', [WorkController::class, 'destroy']);
 
 // Routes CRUD Chapters
 $router->get('/chapters', [ChapterController::class, 'index']);

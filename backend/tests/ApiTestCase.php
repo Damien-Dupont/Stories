@@ -52,10 +52,9 @@ abstract class ApiTestCase extends TestCase
         $defaults = [
             'title' => 'Test Work',
             'description' => 'any description',
-            // 'author_id' => '',
             'published' => true,
-            'episode_label' => 'Épisode',
-            'chapter_label' => 'Chapitre'
+            'episode_label' => 'épisode',
+            'chapter_label' => 'chapitre'
         ];
 
         $workData = array_merge($defaults, $data);
