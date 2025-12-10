@@ -53,21 +53,56 @@ class ChapterApiTest extends ApiTestCase
     // public function it_should_auto_generate_title_when_missing()
 
 
-    // /**
-    //  * @test
-    //  * Teste le rejet de création d'un chapitre sans work_id
-    //  */
-    // public function it_should_reject_chapter_without_work_id()
-    // {
-    // }
+    /**
+     * @test
+     * Teste le rejet de création d'un chapitre sans work_id
+     */
+    public function CREATE__it_should_reject_chapter_without_work_id()
+    {
 
-    // /**
-    //  * @test
-    //  * Teste le la valuer par défaut de order_hint à la création d'un chapitre
-    //  */
-    // public function it_should_set_order_hint_to_zero_by_default()
-    // {
-    // }
+        // ARRANGE
+        $chapterWithoutWorkId = [
+            'number' => 2,
+            'order_hint' => 2,
+            'title' => 'Titre sans oeuvre'
+            // Manque : work_id
+        ];
+
+        // ACT
+        $response = $this->client->post('/chapters', ['json' => $chapterWithoutWorkId]);
+
+        // ASSERT
+        $this->assertEquals(400, $response->getStatusCode());
+
+    }
+
+    /**
+     * @test
+     * Teste le la valeur par défaut de order_hint à la création d'un chapitre
+     */
+    public function CREATE__it_should_set_order_hint_to_zero_by_default()
+    {
+        // ARRANGE
+        $chapterNoOrderHint = [
+            'number' => 2,
+            'work_id' => $this->persistentData['workId'],
+            'title' => 'Titre sans order_hint'
+            // Manque : work_id
+        ];
+
+        // ACT
+        $response = $this->client->post('/chapters', ['json' => $chapterNoOrderHint]);
+
+        // ASSERT
+        $data = json_decode($response->getBody(), true);
+        $chapterId = $data['data']['id'];
+
+        $stmt = $this->pdo->prepare('SELECT order_hint FROM chapters WHERE id = :id');
+        $stmt->execute(['id' => $chapterId]);
+        $chapter = $stmt->fetch();
+        $this->assertEquals(0, $chapter['order_hint']);
+
+    }
 
     // CRUD TESTS :: READ
 
