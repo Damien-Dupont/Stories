@@ -63,7 +63,7 @@ $router->get('/health', function (PDO $pdo) {
 $router->get('/works', [WorkController::class, 'index']);
 // $router->get('/works/{id}', [WorkController::class, 'show']);
 $router->post('/works', [WorkController::class, 'create']);
-// $router->put('/works/{id}', [WorkController::class, 'update']);
+$router->put('/works/{id}', [WorkController::class, 'update']);
 // $router->delete('/works/{id}', [WorkController::class, 'destroy']);
 
 // Routes CRUD Chapters

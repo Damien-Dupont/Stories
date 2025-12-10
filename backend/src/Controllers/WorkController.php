@@ -33,7 +33,12 @@ class WorkController
         }
     }
 
-
+    /**
+     * POST /works - créer une nouvelle œuvre
+     * @param PDO $pdo
+     * @return void
+     * Body JSON: {"id": "uuid", "title": "...", "description": "...", "author_id": "uuid", "episode_label": "...", "chapter_label": "...", "created_at": "date", "updated_at": "date", "published_date": "date", "deleted_date": "date"}
+     */
     public static function create(PDO $pdo): void
     {
         try {
@@ -76,6 +81,71 @@ class WorkController
                     'id' => $result['id'],
                     'created_at' => $result['created_at']
                 ]
+            ]);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public static function update(PDO $pdo, string $id): void
+    {
+        try {
+            $input = json_decode(file_get_contents('php://input'), true);
+
+            $fields = [];
+            $params = ['id' => $id];
+
+            // Champs modifiables
+            $allowedFields = [
+                'title',
+                'description',
+                'episode_label',
+                'chapter_label',
+                'number',
+                'order_hint',
+                'updated_at',
+                'published_date',
+                'deleted_date'
+            ];
+
+            foreach ($allowedFields as $field) {
+                if (isset($input[$field])) {
+                    $fields[] = "$field = :$field";
+                    $params[$field] = $input[$field];
+                }
+            }
+
+            if (empty($fields)) {
+                http_response_code(400);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'No fields to update'
+                ]);
+                return;
+            }
+
+            $fields[] = 'updated_at = CURRENT_TIMESTAMP';
+            $sql = 'UPDATE works SET ' . implode(', ', $fields) . ' WHERE id = :id';
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+
+            if ($stmt->rowCount() === 0) {
+                http_response_code(404);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Work not found'
+                ]);
+                return;
+            }
+
+            echo json_encode([
+                'status' => 'ok',
+                'message' => 'Work updated'
             ]);
         } catch (PDOException $e) {
             http_response_code(500);

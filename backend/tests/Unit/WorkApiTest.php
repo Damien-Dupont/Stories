@@ -1,5 +1,7 @@
 <?php
 
+use function PHPUnit\Framework\assertEquals;
+
 require_once __DIR__ . '/../ApiTestCase.php';
 
 class WorkApiTest extends ApiTestCase
@@ -73,12 +75,51 @@ class WorkApiTest extends ApiTestCase
         $this->assertEquals('Third Testing Book', $data['data'][0]['title']);
     }
 
+    // CRUD TESTS :: UPDATE
+
+    /**
+     * @test
+     * Summary of UPDATE__it_should_update_work_title
+     * @return void
+     */
+    public function UPDATE__it_should_update_work_title(): void
+    {
+        // ARRANGE
+        $workId = $this->createTestWork(['title' => 'To Be Or Not To Be']);
+
+        sleep(1);
+        $beforeUpdate = new DateTime();
+        // ACT
+        $response = $this->client->put('/works/' . $workId, ['json' => ['title' => 'To Be Updated']]);
+
+        // ASSERT
+        $stmt = $this->pdo->prepare('SELECT title, updated_at FROM works WHERE id = :id');
+        $stmt->execute(['id' => $workId]);
+        $work = $stmt->fetch();
+
+        $afterUpdate = new DateTime();
+        $updatedAt = new DateTime($work['updated_at']);
+
+        $this->assertEquals('To Be Updated', $work['title']);
+
+        $this->assertGreaterThanOrEqual(
+            $beforeUpdate->getTimestamp() - 1,
+            $updatedAt->getTimestamp(),
+            'updated_at should be after or equal to the update time'
+        );
+        $this->assertLessThanOrEqual(
+            $afterUpdate->getTimestamp() + 1,
+            $updatedAt->getTimestamp(),
+            'updated_at should be before or equal to the current time'
+        );
+    }
+
     // TODO: tests à ajouter
 
     // READ__it_should_get_a_work_by_id
 
-    // UPDATE__it_should_update_work_title
-// DELETE__it_should_delete_work
+
+    // DELETE__it_should_delete_work
 // CREATE__it_should_set_published_to_false_by_default
 // CREATE__it_should_reject_work_without_title
 
