@@ -52,7 +52,7 @@ abstract class ApiTestCase extends TestCase
         $defaults = [
             'title' => 'Test Work',
             'description' => 'any description',
-            'published' => true,
+            'published_date' => '2025-01-01 10:00:00',
             'episode_label' => 'épisode',
             'chapter_label' => 'chapitre'
         ];
@@ -60,14 +60,14 @@ abstract class ApiTestCase extends TestCase
         $workData = array_merge($defaults, $data);
 
         // $stmt = $this->pdo->prepare("
-        //     INSERT INTO works (title, description, author_id, published, episode_label, chapter_label)
-        //     VALUES (:title, :description, :author_id, :published, :episode_label, :chapter_label)
+        //     INSERT INTO works (title, description, author_id, published_date, episode_label, chapter_label)
+        //     VALUES (:title, :description, :author_id, :published_date, :episode_label, :chapter_label)
         //     RETURNING id
         // ");
 
         $stmt = $this->pdo->prepare("
-            INSERT INTO works (title, description, published, episode_label, chapter_label)
-            VALUES (:title, :description, :published, :episode_label, :chapter_label)
+            INSERT INTO works (title, description, published_date, episode_label, chapter_label)
+            VALUES (:title, :description, :published_date, :episode_label, :chapter_label)
             RETURNING id
         ");
 
@@ -120,8 +120,8 @@ abstract class ApiTestCase extends TestCase
     {
         // Créer une œuvre
         $stmt = $this->pdo->query("
-            INSERT INTO works (title, published)
-            VALUES ('Test Work', true)
+            INSERT INTO works (title, published_date)
+            VALUES ('Test Work', '2025-01-01 10:00:00')
             RETURNING id
         ");
         $this->persistentData['workId'] = $stmt->fetchColumn();

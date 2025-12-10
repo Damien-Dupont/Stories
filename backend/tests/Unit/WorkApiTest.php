@@ -63,12 +63,7 @@ class WorkApiTest extends ApiTestCase
         $response = $this->client->get('/works');
 
         // ASSERT
-        if ($response->getStatusCode() !== 201) {
-            echo "\n=== DEBUG ERROR 500 ===\n";
-            echo "Status Code: " . $response->getStatusCode() . "\n";
-            echo "Response Body: " . $response->getBody()->getContents() . "\n";
-            echo "========================\n";
-        }
+
         $this->assertEquals(200, $response->getStatusCode());
         $data = json_decode($response->getBody(), true);
         $this->assertEquals('ok', $data['status']);

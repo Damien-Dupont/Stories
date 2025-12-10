@@ -1,4 +1,4 @@
--- Migration: 20251208_2100_add_work_defaults.sql
+-- database/migrations/20251208_2208_add_work_defaults.sql
 -- Description: force des valeurs par défaut dans la table Works
 
 BEGIN;

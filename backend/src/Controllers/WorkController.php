@@ -18,6 +18,7 @@ class WorkController
 
             $works = $stmt->fetchAll();
 
+            http_response_code(200);
             echo json_encode([
                 'status' => 'ok',
                 'data' => $works
@@ -36,6 +37,7 @@ class WorkController
     public static function create(PDO $pdo): void
     {
         try {
+
             $input = json_decode(file_get_contents('php://input'), true);
 
             if (!isset($input['title']) || trim($input['title']) === '') {
@@ -47,60 +49,24 @@ class WorkController
                 return;
             }
 
-            // ✅ Nettoyer published (AVANT prepare())
-            $published = false;
-            if (array_key_exists('published', $input) && $input['published'] !== "" && $input['published'] !== null) {
-                $published = (bool) $input['published'];
-            }
-
-            // ✅ Nettoyer description (AVANT prepare())
-            $description = null;
-            if (isset($input['description']) && trim($input['description']) !== '') {
-                $description = trim($input['description']);
-            }
-            $episode_label = $input['episode_label'] ?? 'Épisode';
-            $chapter_label = $input['chapter_label'] ?? 'Chapitre';
-
             $stmt = $pdo->prepare('
-        INSERT INTO works
-        (
-        title,
-        description,
-        published,
-        episode_label,
-        chapter_label)
-        VALUES
-        (
-        :title,
-        :description,
-        :published,
-        :episode_label,
-        :chapter_label)
+        INSERT INTO works (
+            title, description, published_date, episode_label, chapter_label
+        )
+        VALUES (
+            :title, :description, :published_date, :episode_label, :chapter_label
+        )
         RETURNING id, created_at');
 
+            $stmt->execute([
+                'title' => trim($input['title']),
+                'description' => $input['description'] ?? null,
+                'published_date' => $input['published_date'] ?? null,
+                'episode_label' => $input['episode_label'] ?? 'Épisode',
+                'chapter_label' => $input['chapter_label'] ?? 'Chapitre'
+            ]);
 
-            // Lier explicitement les types
-            $stmt->bindValue(':title', trim($input['title']), PDO::PARAM_STR);
-
-            if ($description === null) {
-                $stmt->bindValue(':description', null, PDO::PARAM_NULL);
-            } else {
-                $stmt->bindValue(':description', $description, PDO::PARAM_STR);
-            }
-            $stmt->bindValue(':published', $published, PDO::PARAM_BOOL);
-            $stmt->bindValue(':episode_label', $episode_label, PDO::PARAM_STR);
-            $stmt->bindValue(':chapter_label', $chapter_label, PDO::PARAM_STR);
-
-            $stmt->execute();
-            // $stmt->execute([
-            //     'title' => trim($input['title']),
-            //     'description' => $description,
-            //     'published' => $published,
-            //     'episode_label' => $input['episode_label'] ?? 'Épisode',
-            //     'chapter_label' => $input['chapter_label'] ?? 'Chapitre'
-            // ]);
-
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $result = $stmt->fetch();
 
             http_response_code(201);
             echo json_encode([
