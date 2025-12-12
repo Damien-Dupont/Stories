@@ -79,14 +79,6 @@ class MigrationManager
     }
 
     /**
-     * Calcule le checksum MD5 d'un fichier SQL
-     */
-    private function calculateChecksum(string $filepath): string
-    {
-        return md5_file($filepath);
-    }
-
-    /**
      * Applique les migrations en attente
      */
     public function migrate(): void
@@ -111,7 +103,7 @@ class MigrationManager
         foreach ($pending as $migration) {
             echo "Applying {$migration['version']}: {$migration['description']}... ";
 
-        try {
+            try {
                 // 1. Lire le fichier SQL
                 $sql = file_get_contents($migration['path']);
 
@@ -119,13 +111,11 @@ class MigrationManager
                 $sql = $this->cleanOldMigrationInserts($sql);
 
                 // 3. Calculer le checksum
-                $checksum = $this->calculateChecksum($migration['path']);
-
-                // 4. Transaction pour appliquer la migration + enregistrer
-                $this->pdo->beginTransaction();
+                $checksum = md5_file($migration['path']);
 
                 try {
                     // Exécuter le SQL de la migration
+                    $this->pdo->beginTransaction();
                     $this->pdo->exec($sql);
 
                     // Enregistrer dans schema_migrations (géré automatiquement)
