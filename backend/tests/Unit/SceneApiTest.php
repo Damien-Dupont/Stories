@@ -23,8 +23,7 @@ class SceneApiTest extends ApiTestCase
             'chapter_id' => $this->persistentData['chapterId'],
             'title' => 'Ma première scène',
             'content_markdown' => '# Titre\n\nContenu de la scène',
-            'order_hint' => 1,
-            'sort_order' => 200
+            'global_order' => 200
         ];
 
         // Faire la requête POST
@@ -67,8 +66,7 @@ class SceneApiTest extends ApiTestCase
             'title' => $prologueTitle,
             'content_markdown' => '# Titre\n\nContenu du prologue',
             'scene_type' => $prologueSceneType,
-            'order_hint' => 1,
-            'sort_order' => 100
+            'global_order' => 100
         ];
 
         // Faire la requête POST
@@ -105,8 +103,7 @@ class SceneApiTest extends ApiTestCase
         // ARRANGE
         $sceneWithoutTitle = [
             'chapter_id' => $this->persistentData['chapterId'],
-            'content_markdown' => '# Contenu',
-            'order_hint' => 3
+            'content_markdown' => '# Contenu'
             // Pas de title
         ];
 
@@ -124,7 +121,7 @@ class SceneApiTest extends ApiTestCase
         $stmt->execute(['id' => $sceneId]);
         $scene = $stmt->fetch();
 
-        $this->assertEquals('Scène 3', $scene['title']);
+        $this->assertEquals('Scène sans titre', $scene['title']);
     }
 
     /**
@@ -163,7 +160,7 @@ class SceneApiTest extends ApiTestCase
             'scene_type' => 'special',
             'custom_type_label' => 'Prologue',
             'content_markdown' => '# Contenu du prologue',
-            'sort_order' => 100
+            'global_order' => 100
             // Pas de title
         ];
 
@@ -219,7 +216,7 @@ class SceneApiTest extends ApiTestCase
             'chapter_id' => $this->persistentData['chapterId'],
             'title' => $sceneToGetTitle,
             'content_markdown' => $sceneToGetContent,
-            'sort_order' => 200
+            'global_order' => 200
         ];
         $sceneToGetID = $this->createTestScene($sceneToCreate);
 
@@ -262,12 +259,12 @@ class SceneApiTest extends ApiTestCase
      * @test
      * Teste le listing de toutes les scènes d'un chapitre, dans l'ordre
      */
-    public function READ__it_should_list_all_scenes_ordered_by_sort_order()
+    public function READ__it_should_list_all_scenes_ordered_by_global_order()
     {
-        // ARRANGE : Créer 3 scènes avec différents sort_order
+        // ARRANGE : Créer 3 scènes avec différents global_order
         $this->createTestScene([
             'title' => 'Chapitre 1 - Scène 1',
-            'sort_order' => 200
+            'global_order' => 200
         ]);
 
         $prologueId = $this->client->post('/scenes', [
@@ -276,14 +273,13 @@ class SceneApiTest extends ApiTestCase
                 'custom_type_label' => 'Prologue',
                 'title' => 'Prologue',
                 'content_markdown' => '# Prologue',
-                'sort_order' => 100
+                'global_order' => 100
             ]
         ]);
 
         $this->createTestScene([
             'title' => 'Chapitre 1 - Scène 2',
-            'sort_order' => 200,
-            'order_hint' => 2
+            'global_order' => 300
         ]);
 
         // ACT
@@ -338,14 +334,14 @@ class SceneApiTest extends ApiTestCase
         // ARRANGE
         $sceneId = $this->createTestScene([
             'title' => 'Original',
-            'sort_order' => 200
+            'global_order' => 200
         ]);
 
         // ACT
         $response = $this->client->put('/scenes/' . $sceneId, [
             'json' => [
                 'title' => 'Nouveau titre',
-                'sort_order' => 150,
+                'global_order' => 150,
                 'emoji' => '🔥'
             ]
         ]);
@@ -358,7 +354,7 @@ class SceneApiTest extends ApiTestCase
         $scene = $stmt->fetch();
 
         $this->assertEquals('Nouveau titre', $scene['title']);
-        $this->assertEquals(150, $scene['sort_order']);
+        $this->assertEquals(150, $scene['global_order']);
         $this->assertEquals('🔥', $scene['emoji']);
     }
 

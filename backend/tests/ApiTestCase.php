@@ -106,7 +106,7 @@ abstract class ApiTestCase extends TestCase
             'chapter_id' => $this->persistentData['chapterId'],
             'title' => 'Test Scene',
             'content_markdown' => '# Content',
-            'sort_order' => 200
+            'global_order' => 200
         ];
 
         $response = $this->client->post('/scenes', [

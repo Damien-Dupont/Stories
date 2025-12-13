@@ -160,9 +160,9 @@ class ChapterApiTest extends ApiTestCase
      * @test
      * Teste le listing de tous les chapitres d'un épisode, dans l'ordre
      */
-    public function READ__it_should_list_all_chapters_ordered_by_sort_order()
+    public function READ__it_should_list_all_chapters_ordered_by_global_order()
     {
-        // ARRANGE : Créer 3 chapitres avec différents sort_order
+        // ARRANGE : Créer 3 chapitres avec différents global_order
         $WorkId = $this->createTestWork([
             'title' => 'Testing Book'
         ]);

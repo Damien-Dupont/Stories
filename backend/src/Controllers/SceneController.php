@@ -15,10 +15,9 @@ class SceneController
                 sc.content_markdown,
                 sc.scene_type,
                 sc.custom_type_label,
-                sc.sort_order,
+                sc.global_order,
                 sc.emoji,
                 sc.image_url,
-                sc.order_hint,
                 sc.published_at,
                 sc.created_at,
                 ch.title as chapter_title,
@@ -26,7 +25,7 @@ class SceneController
                 ch.number as chapter_number
             FROM scenes sc
             LEFT JOIN chapters ch ON ch.id = sc.chapter_id
-            ORDER BY sc.sort_order ASC, sc.order_hint ASC
+            ORDER BY sc.global_order ASC
         ');
 
             $scenes = $stmt->fetchAll();
@@ -56,7 +55,7 @@ class SceneController
                     ch.title as chapter_title,
                     ch.number as chapter_number
                 FROM scenes sc
-                JOIN chapters ch ON ch.id = sc.chapter_id
+                LEFT JOIN chapters ch ON ch.id = sc.chapter_id
                 WHERE sc.id = :id
             ');
 
@@ -107,14 +106,11 @@ class SceneController
             // Génération automatique du titre si absent
             if (empty($input['title'])) {
                 if (isset($input['scene_type']) && $input['scene_type'] === 'special' && !empty($input['custom_type_label'])) {
-                    // Scène spéciale : utiliser le custom_type_label
                     $input['title'] = $input['custom_type_label'];
-                } elseif (isset($input['order_hint'])) {
-                    // Scène standard : "Scène {order_hint}"
-                    $input['title'] = 'Scène ' . $input['order_hint'];
+                } elseif (isset($input['global_order'])) {
+                    $input['title'] = 'Scène ' . $input['global_order'];
                 } else {
-                    // Fallback : "Scène {sort_order}"
-                    $input['title'] = 'Scène ' . ($input['sort_order'] ?? 0);
+                    $input['title'] = 'Scène sans titre';
                 }
             }
 
@@ -123,12 +119,12 @@ class SceneController
 
             $stmt = $pdo->prepare('
             INSERT INTO scenes (
-                chapter_id, title, content_markdown, order_hint,
-                scene_type, custom_type_label, sort_order, emoji, image_url
+                chapter_id, title, content_markdown, global_order,
+                scene_type, custom_type_label, emoji, image_url
             )
             VALUES (
-                :chapter_id, :title, :content_markdown, :order_hint,
-                :scene_type, :custom_type_label, :sort_order, :emoji, :image_url
+                :chapter_id, :title, :content_markdown, :global_order,
+                :scene_type, :custom_type_label, :emoji, :image_url
             )
             RETURNING id, created_at
         ');
@@ -137,10 +133,9 @@ class SceneController
                 'chapter_id' => $input['chapter_id'] ?? null,
                 'title' => $input['title'],
                 'content_markdown' => $input['content_markdown'],
-                'order_hint' => $input['order_hint'] ?? 0,
+                'global_order' => $input['global_order'] ?? 0,
                 'scene_type' => $input['scene_type'] ?? 'standard',
                 'custom_type_label' => $input['custom_type_label'] ?? null,
-                'sort_order' => $input['sort_order'] ?? 0,
                 'emoji' => $input['emoji'] ?? null,
                 'image_url' => $input['image_url'] ?? null
             ]);
@@ -180,10 +175,9 @@ class SceneController
             $allowedFields = [
                 'title',
                 'content_markdown',
-                'order_hint',
+                'global_order',
                 'scene_type',
                 'custom_type_label',
-                'sort_order',
                 'emoji',
                 'image_url',
                 'chapter_id'
