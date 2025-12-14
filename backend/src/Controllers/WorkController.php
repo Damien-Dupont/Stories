@@ -33,6 +33,12 @@ class WorkController
         }
     }
 
+    /**
+     * GET /works/{id} - voir une œuvre
+     * @param PDO $pdo
+     * @param string $id
+     * @return void
+     */
     public static function show(PDO $pdo, string $id): void
     {
         try {
@@ -126,7 +132,7 @@ class WorkController
     }
 
     /**
-     * UPDATE /works{id} - mettre à jour une oeuvre
+     * UPDATE /works{id} - mettre à jour une œuvre
      * @param PDO $pdo
      * @param string $id
      * @return void
@@ -197,7 +203,7 @@ class WorkController
     }
 
     /**
-     * DELETE /works/{id}
+     * DELETE /works/{id} - supprimer une œuvre
      * @param PDO $pdo
      * @param mixed $id
      * @return void

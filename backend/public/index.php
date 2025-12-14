@@ -80,6 +80,13 @@ $router->post('/scenes', [SceneController::class, 'create']);
 $router->put('/scenes/{id}', [SceneController::class, 'update']);
 $router->delete('/scenes/{id}', [SceneController::class, 'destroy']);
 
+// Routes CRUD Transitions
+// $router->get('/transitions', [TransitionController::class, 'index']);
+// $router->get('/transitions/{id}', [TransitionController::class, 'show']);
+// $router->post('/transitions', [TransitionController::class, 'create']);
+// $router->put('/transitions/{id}', [TransitionController::class, 'update']);
+// $router->delete('/transitions/{id}', [TransitionController::class, 'destroy']);
+
 // Routes CRUD Episodes
 // $router->get('/episodes', [EpisodeController::class,'index']);
 // $router->get('/episodes/{id}', [EpisodeController::class, 'show']);
