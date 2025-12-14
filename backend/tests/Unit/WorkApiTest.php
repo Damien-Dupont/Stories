@@ -75,6 +75,39 @@ class WorkApiTest extends ApiTestCase
         $this->assertEquals('Third Testing Book', $data['data'][0]['title']);
     }
 
+    /**
+     * @test
+     * Summary of READ__it_should_get_a_single_work
+     * @return void
+     */
+    public function READ__it_should_get_a_single_work(): void
+    {
+        // ARRANGE
+        $WorkId = $this->createTestWork(
+            [
+                'title' => 'Testing Book',
+                'episode_label' => 'Livre',
+                'chapter_label' => 'Chapitre',
+                'published_date' => null
+            ]
+        );
+
+        // ACT
+        $response = $this->client->get('/works/' . $WorkId);
+
+        // ASSERT
+
+        $this->assertEquals(200, $response->getStatusCode());
+
+        $data = json_decode($response->getBody(), true);
+        $this->assertEquals('ok', $data['status']);
+
+        $this->assertEquals('Testing Book', $data['data']['title']);
+        $this->assertEquals('Livre', $data['data']['episode_label']);
+        $this->assertEquals('Chapitre', $data['data']['chapter_label']);
+        $this->assertEquals(null, $data['data']['published_date']);
+    }
+
     // CRUD TESTS :: UPDATE
 
     /**
@@ -114,13 +147,50 @@ class WorkApiTest extends ApiTestCase
         );
     }
 
+    /**
+     * @test
+     * Summary of DELETE__it_should_delete_a_work
+     * @return void
+     */
+    public function DELETE__it_should_delete_a_work(): void
+    {
+        // ARRANGE
+        $workToDelete = $this->createTestWork(['title' => 'Work to be deleted']);
+        $getResponse = $this->client->get('/works/' . $workToDelete);
+
+        // ACT
+        $delResponse = $this->client->delete('/works/' . $workToDelete);
+
+        // ASSERT
+        $this->assertEquals(200, $getResponse->getStatusCode());
+
+        $getResponse = $this->client->get('/works/' . $workToDelete);
+        $this->assertEquals(404, $getResponse->getStatusCode());
+
+        $data = json_decode($getResponse->getBody()->getContents(), true);
+        $this->assertEquals('error', $data['status']);
+        $this->assertStringContainsString('not found', strtolower($data['message']));
+    }
+    /**
+     * @test
+     * Teste le retour d'erreur à la suppression d'une oeuvre inexistante
+     */
+    public function DELETE__it_should_return_404_when_deleting_non_existent_work()
+    {
+        // ACT : supprimer une scène via son ID
+        $delResponse = $this->client->delete('/works/00000000-0000-0000-0000-000000000000');
+
+        // ASSERT
+        $this->assertEquals(404, $delResponse->getStatusCode());
+    }
+
     // TODO: tests à ajouter
 
-    // READ__it_should_get_a_work_by_id
 
 
-    // DELETE__it_should_delete_work
-// CREATE__it_should_set_published_to_false_by_default
+
+
+    // CREATE__it_should_set_published_to_false_by_default
 // CREATE__it_should_reject_work_without_title
 
 }

@@ -121,7 +121,7 @@ class SceneApiTest extends ApiTestCase
         $stmt->execute(['id' => $sceneId]);
         $scene = $stmt->fetch();
 
-        $this->assertEquals('Scène sans titre', $scene['title']);
+        $this->assertEquals('Sans titre', $scene['title']);
     }
 
     /**

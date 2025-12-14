@@ -110,7 +110,7 @@ class SceneController
                 } elseif (isset($input['global_order'])) {
                     $input['title'] = 'Scène ' . $input['global_order'];
                 } else {
-                    $input['title'] = 'Scène sans titre';
+                    $input['title'] = 'Sans titre';
                 }
             }
 

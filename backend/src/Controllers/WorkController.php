@@ -33,6 +33,40 @@ class WorkController
         }
     }
 
+    public static function show(PDO $pdo, string $id): void
+    {
+        try {
+            $stmt = $pdo->prepare('
+        SELECT *
+        FROM works
+        WHERE works.id = :id
+        ');
+
+            $stmt->execute(['id' => $id]);
+            $work = $stmt->fetch();
+
+            if (!$work) {
+                http_response_code(404);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Work not found'
+                ]);
+                return;
+            }
+
+            echo json_encode([
+                'status' => 'ok',
+                'data' => $work
+            ]);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
     /**
      * POST /works - créer une nouvelle œuvre
      * @param PDO $pdo
@@ -91,6 +125,12 @@ class WorkController
         }
     }
 
+    /**
+     * UPDATE /works{id} - mettre à jour une oeuvre
+     * @param PDO $pdo
+     * @param string $id
+     * @return void
+     */
     public static function update(PDO $pdo, string $id): void
     {
         try {
@@ -147,6 +187,42 @@ class WorkController
                 'status' => 'ok',
                 'message' => 'Work updated'
             ]);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * DELETE /works/{id}
+     * @param PDO $pdo
+     * @param mixed $id
+     * @return void
+     */
+    public static function destroy(PDO $pdo, $id)
+    {
+        try {
+            $stmt = $pdo->prepare('
+            DELETE FROM works WHERE id = :id
+            ');
+            $stmt->execute(['id' => $id]);
+
+            if ($stmt->rowCount() === 0) {
+                http_response_code(404);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Work not found'
+                ]);
+                return;
+            }
+            echo json_encode([
+                'status' => 'ok',
+                'message' => 'Work deleted'
+            ]);
+
         } catch (PDOException $e) {
             http_response_code(500);
             echo json_encode([
