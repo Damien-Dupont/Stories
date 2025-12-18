@@ -20,6 +20,12 @@ class TransitionApiTest extends ApiTestCase
      */
     public function CREATE__it_should_create_a_transition_between_two_scenes(): void
     {
+
+        // Vérifier que les scènes existent via GET
+        $check1 = $this->client->get('/scenes/' . $this->persistentData['sceneOneId']);
+
+        $check2 = $this->client->get('/scenes/' . $this->persistentData['sceneTwoId']);
+
         //ARRANGE
         $transitionToCreate = [
             'scene_before_id' => $this->persistentData['sceneOneId'],
@@ -34,7 +40,8 @@ class TransitionApiTest extends ApiTestCase
 
         $data = json_decode($response->getBody(), true);
         $this->assertEquals('ok', $data['status']);
-        $this->assertEquals('id', $data['data']);
+        $this->assertArrayHasKey('id', $data['data']);  // ✅ Vérifie que la clé 'id' existe
+        $this->assertIsString($data['data']['id']);     // ✅ Vérifie que c'est une chaîne (UUID)
 
         $this->persistentData['transitionId'] = $data['data']['id'];
 
@@ -44,9 +51,14 @@ class TransitionApiTest extends ApiTestCase
 
         $this->assertEquals($this->persistentData['sceneOneId'], $transition['scene_before_id']);
         $this->assertEquals($this->persistentData['sceneTwoId'], $transition['scene_after_id']);
-        $this->assertNull($transition['transition_label']);
+        $this->assertEquals('Par là', $transition['transition_label']);
         $this->assertEquals(1, $transition['transition_order']);
     }
 
 }
 
+// TODO: GET_CREATE__it_should_return_404_if_one_scene_does_not_exist
+// TODO: READ__it_should_return_404_if_one_transition_does_not_exist
+// GET /transitions
+// GET /transitions/{id}
+// GET /scenes/{id}/transitions

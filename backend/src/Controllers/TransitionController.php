@@ -32,10 +32,23 @@ class TransitionController
      */
     private static function validateScenesExist(PDO $pdo, string $sceneBeforeId, string $sceneAfterId): bool
     {
+
+        // Test 1 : Chercher Scene Before individuellement
+        $test1 = $pdo->prepare('SELECT id, title FROM scenes WHERE id = :id');
+        $test1->execute(['id' => $sceneBeforeId]);
+        $found1 = $test1->fetch();
+        error_log("Scene Before exists: " . ($found1 ? 'YES - ' . $found1['title'] : 'NO'));
+
+        // Test 2 : Chercher Scene After individuellement
+        $test2 = $pdo->prepare('SELECT id, title FROM scenes WHERE id = :id');
+        $test2->execute(['id' => $sceneAfterId]);
+        $found2 = $test2->fetch();
+        error_log("Scene After exists: " . ($found2 ? 'YES - ' . $found2['title'] : 'NO'));
+
         $stmt = $pdo->prepare('
         SELECT COUNT(*) as count
         FROM scenes
-        WHERE id IN (:before, :after)
+        WHERE id::text = :before OR id::text = :after
     ');
         $stmt->execute([
             'before' => $sceneBeforeId,
@@ -127,7 +140,7 @@ class TransitionController
                 $orderResult = $stmt->fetch();
                 $input['transition_order'] = $orderResult['next_order'];
             }
-            // penser à créer un lien 'to be continued' réutilisable menant vers une page "salle d'attente" pour les liens vers des pages non publiées ou inexistantes
+            // TODO: penser à créer un lien 'to be continued' réutilisable menant vers une page "salle d'attente" pour les liens vers des pages non publiées ou inexistantes
 
             $stmt = $pdo->prepare('INSERT INTO scene_transitions (scene_before_id, scene_after_id, transition_label, transition_order) VALUES (:scene_before_id, :scene_after_id, :transition_label, :transition_order) RETURNING id, created_at');
             $stmt->execute([

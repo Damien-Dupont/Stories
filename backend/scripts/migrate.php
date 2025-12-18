@@ -222,7 +222,7 @@ class MigrationManager
                 $message = 'Fichier manquant';
                 $hasErrors = true;
             } elseif ($migration['checksum']) {
-                $currentChecksum = $this->calculateChecksum($filepath);
+                $currentChecksum = md5_file($filepath);
                 if ($currentChecksum !== $migration['checksum']) {
                     $status = '⚠️';
                     $message = 'Fichier modifié après application';

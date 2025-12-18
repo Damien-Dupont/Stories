@@ -21,6 +21,8 @@ require_once __DIR__ . '/../src/Controllers/SceneController.php';
 require_once __DIR__ . '/../src/Controllers/ChapterController.php';
 //require_once __DIR__ . '/../src/Controllers/EpisodeController.php';
 require_once __DIR__ . '/../src/Controllers/WorkController.php';
+require_once __DIR__ . '/../src/Controllers/TransitionController.php';
+
 
 // Charger la connexion BDD
 $pdo = require_once __DIR__ . '/../config/database.php';
@@ -83,7 +85,7 @@ $router->delete('/scenes/{id}', [SceneController::class, 'destroy']);
 // Routes CRUD Transitions
 // $router->get('/transitions', [TransitionController::class, 'index']);
 // $router->get('/transitions/{id}', [TransitionController::class, 'show']);
-// $router->post('/transitions', [TransitionController::class, 'create']);
+$router->post('/transitions', [TransitionController::class, 'create']);
 // $router->put('/transitions/{id}', [TransitionController::class, 'update']);
 // $router->delete('/transitions/{id}', [TransitionController::class, 'destroy']);
 

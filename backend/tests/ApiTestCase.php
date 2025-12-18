@@ -113,6 +113,15 @@ abstract class ApiTestCase extends TestCase
             'json' => array_merge($defaults, $data)
         ]);
 
+        $body = json_decode($response->getBody(), true);
+
+        if ($response->getStatusCode() !== 201) {
+            throw new \RuntimeException(
+                'Failed to create test scene. Status: ' . $response->getStatusCode()
+                . ', Body: ' . $response->getBody()
+            );
+        }
+
         return json_decode($response->getBody(), true)['data']['id'];
     }
 
@@ -134,7 +143,10 @@ abstract class ApiTestCase extends TestCase
         ");
         $stmt->execute(['work_id' => $this->persistentData['workId']]);
         $this->persistentData['chapterId'] = $stmt->fetchColumn();
+
     }
+
+
 
 }
 
