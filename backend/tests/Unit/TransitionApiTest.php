@@ -55,6 +55,9 @@ class TransitionApiTest extends ApiTestCase
         $this->assertEquals(1, $transition['transition_order']);
     }
 
+    public function READ__it_should_get_transitions_to_next_scenes(): void
+    {
+    }
 }
 
 // TODO: GET_CREATE__it_should_return_404_if_one_scene_does_not_exist

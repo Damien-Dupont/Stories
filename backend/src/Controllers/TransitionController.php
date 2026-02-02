@@ -76,6 +76,32 @@ class TransitionController
      */
     public static function index(PDO $pdo): void
     {
+        try {
+            $stmt = $pdo->query('
+            SELECT
+            st.id as transition_id,
+            st.scene_before_id as from_scene,
+            st.scene_after_id as to_scene,
+            st.transition_label
+            st.transition_order,
+            st.created_at
+            FROM scene_transitions st
+            ORDER BY st.scene_before_id, st.transition_order ASC
+            ');
+
+            $transitions = $stmt->fetchAll();
+
+            echo json_encode([
+                'status' => 'ok',
+                'data' => $transitions
+            ]);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 
     /**
@@ -183,4 +209,45 @@ class TransitionController
             ]);
         }
     }
+
+    public static function nextTransitions(PDO $pdo, string $sceneId): void
+    {
+        try {
+            $stmt = $pdo->prepare('SELECT * FROM scene_transitions WHERE scene_before_id = :from_scene_id ORDER BY transition_order');
+            $stmt->execute(['from_scene_id' => $sceneId]);
+            $nextTransitions = $stmt->fetchAll();
+
+            if (!$sceneId) {
+                http_response_code(404);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Scene not found'
+                ]);
+                return;
+            }
+
+            if (!$nextTransitions) {
+                http_response_code(404);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'No Transition found'
+                ]);
+                return;
+            }
+
+            echo json_encode([
+                'status' => 'ok',
+                'data' => $$nextTransitions
+            ]);
+
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 }
+
+// TODO: renommer scene_before_id et scene_after_id en from/to ou origin/destination

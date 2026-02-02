@@ -85,6 +85,7 @@ $router->delete('/scenes/{id}', [SceneController::class, 'destroy']);
 // Routes CRUD Transitions
 // $router->get('/transitions', [TransitionController::class, 'index']);
 // $router->get('/transitions/{id}', [TransitionController::class, 'show']);
+$router->get('/scenes/{id}/transitions/next', [TransitionController::class, 'nextTransitions']);
 $router->post('/transitions', [TransitionController::class, 'create']);
 // $router->put('/transitions/{id}', [TransitionController::class, 'update']);
 // $router->delete('/transitions/{id}', [TransitionController::class, 'destroy']);
