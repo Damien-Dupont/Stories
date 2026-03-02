@@ -51,13 +51,13 @@ class WorkApiTest extends ApiTestCase
     public function READ__it_should_list_all_works(): void
     {
         // ARRANGE : create 3 different works
-        $WorkOneId = $this->createTestWork(
+        $this->createTestWork(
             ['title' => 'First Testing Book']
         );
-        $WorkTwoId = $this->createTestWork(
+        $this->createTestWork(
             ['title' => 'Second Testing Book']
         );
-        $WorkThreeId = $this->createTestWork(
+        $this->createTestWork(
             ['title' => 'Third Testing Book']
         );
 

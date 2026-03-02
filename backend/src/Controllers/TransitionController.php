@@ -82,7 +82,7 @@ class TransitionController
             st.id as transition_id,
             st.scene_before_id as from_scene,
             st.scene_after_id as to_scene,
-            st.transition_label
+            st.transition_label,
             st.transition_order,
             st.created_at
             FROM scene_transitions st
@@ -213,10 +213,6 @@ class TransitionController
     public static function nextTransitions(PDO $pdo, string $sceneId): void
     {
         try {
-            $stmt = $pdo->prepare('SELECT * FROM scene_transitions WHERE scene_before_id = :from_scene_id ORDER BY transition_order');
-            $stmt->execute(['from_scene_id' => $sceneId]);
-            $nextTransitions = $stmt->fetchAll();
-
             if (!$sceneId) {
                 http_response_code(404);
                 echo json_encode([
@@ -226,18 +222,69 @@ class TransitionController
                 return;
             }
 
-            if (!$nextTransitions) {
+            $stmt = $pdo->prepare('
+            SELECT
+                st.id as transition_id,
+                st.transition_label,
+                st.transition_order,
+                sc.id as scene_id,
+                sc.title as scene_title,
+                sc.emoji,
+                sc.scene_type
+            FROM scene_transitions st
+            JOIN scenes sc ON sc.id = st.scene_after_id
+            WHERE st.scene_before_id = :scene_id
+            ORDER BY st.transition_order ASC');
+            $stmt->execute(['scene_id' => $sceneId]);
+            $nextTransitions = $stmt->fetchAll();
+
+            //  http_response_code(200);
+            echo json_encode([
+                'status' => 'ok',
+                'data' => $nextTransitions
+            ]);
+
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public static function previousTransitions(PDO $pdo, string $sceneId): void
+    {
+        try {
+            if (!$sceneId) {
                 http_response_code(404);
                 echo json_encode([
                     'status' => 'error',
-                    'message' => 'No Transition found'
+                    'message' => 'Scene not found'
                 ]);
                 return;
             }
 
+            $stmt = $pdo->prepare('
+            SELECT
+                st.id as transition_id,
+                st.transition_label,
+                st.transition_order,
+                sc.id as scene_id,
+                sc.title as scene_title,
+                sc.emoji,
+                sc.scene_type
+            FROM scene_transitions st
+            JOIN scenes sc ON sc.id = st.scene_before_id
+            WHERE st.scene_after_id = :scene_id
+            ORDER BY st.transition_order ASC
+            ');
+            $stmt->execute(['scene_id' => $sceneId]);
+            $prevTransitions = $stmt->fetchAll();
+
             echo json_encode([
                 'status' => 'ok',
-                'data' => $$nextTransitions
+                'data' => $prevTransitions
             ]);
 
         } catch (PDOException $e) {
@@ -249,5 +296,7 @@ class TransitionController
         }
     }
 }
+
+
 
 // TODO: renommer scene_before_id et scene_after_id en from/to ou origin/destination
