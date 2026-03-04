@@ -61,11 +61,54 @@ class TransitionApiTest extends ApiTestCase
      */
     public function READ__it_should_get_all_transitions(): void
     {
-        // ARRANGE : create 3 different transitions
-        $this->createTestScene(['title' => 'Test Scene FROM']);
-        $this->createTestScene(['title' => 'Test Scene TO']);
-        $this->createTestScene(['title' => 'Test Scene ALT TO']);
+        // ARRANGE - Créer plusieurs transitions
+        $scene4Id = $this->createTestScene(['title' => 'Scène 4']);
+
+        $this->client->post('/transitions', [
+            'json' => [
+                'scene_before_id' => $this->persistentData['sceneOneId'],
+                'scene_after_id' => $this->persistentData['sceneTwoId'],
+                'transition_label' => 'Continuer',
+                'transition_order' => 1
+            ]
+        ]);
+
+        $this->client->post('/transitions', [
+            'json' => [
+                'scene_before_id' => $this->persistentData['sceneTwoId'],
+                'scene_after_id' => $this->persistentData['sceneThreeId'],
+                'transition_label' => 'Suivant',
+                'transition_order' => 1
+            ]
+        ]);
+
+        $this->client->post('/transitions', [
+            'json' => [
+                'scene_before_id' => $this->persistentData['sceneThreeId'],
+                'scene_after_id' => $scene4Id,
+                'transition_label' => 'Fin',
+                'transition_order' => 1
+            ]
+        ]);
+
+        // ACT - Récupérer toutes les transitions
+        $response = $this->client->get('/transitions');
+
+        // ASSERT - Structure
+        $this->assertEquals(200, $response->getStatusCode());
+
+        $data = json_decode($response->getBody(), true);
+        $this->assertEquals('ok', $data['status']);
+        $this->assertIsArray($data['data']);
+        $this->assertCount(3, $data['data'], 'Should return 3 transitions');
+
+        // ASSERT - Ordre par scene_before_id puis transition_order
+        $firstTransition = $data['data'][0];
+        $this->assertEquals($this->persistentData['sceneOneId'], $firstTransition['from_scene']);
+        $this->assertEquals($this->persistentData['sceneTwoId'], $firstTransition['to_scene']);
+        $this->assertEquals('Continuer', $firstTransition['transition_label']);
     }
+
 
     /**
      * @test Summary of READ__it_should_get_transitions_to_next_scenes

@@ -86,7 +86,7 @@ class TransitionController
             st.transition_order,
             st.created_at
             FROM scene_transitions st
-            ORDER BY st.scene_before_id, st.transition_order ASC
+            ORDER BY st.transition_order ASC
             ');
 
             $transitions = $stmt->fetchAll();
@@ -213,7 +213,20 @@ class TransitionController
     public static function nextTransitions(PDO $pdo, string $sceneId): void
     {
         try {
-            if (!$sceneId) {
+            // Validation : UUID format
+            if (!preg_match('/^[0-9a-f-]{36}$/i', $sceneId)) {
+                http_response_code(400);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Invalid scene ID format'
+                ]);
+                return;
+            }
+
+            // Validation : La scène existe-t-elle ?
+            $checkScene = $pdo->prepare('SELECT id FROM scenes WHERE id = :id');
+            $checkScene->execute(['id' => $sceneId]);
+            if (!$checkScene->fetch()) {
                 http_response_code(404);
                 echo json_encode([
                     'status' => 'error',
@@ -235,6 +248,7 @@ class TransitionController
             JOIN scenes sc ON sc.id = st.scene_after_id
             WHERE st.scene_before_id = :scene_id
             ORDER BY st.transition_order ASC');
+
             $stmt->execute(['scene_id' => $sceneId]);
             $nextTransitions = $stmt->fetchAll();
 
@@ -256,7 +270,20 @@ class TransitionController
     public static function previousTransitions(PDO $pdo, string $sceneId): void
     {
         try {
-            if (!$sceneId) {
+            // Validation : UUID format
+            if (!preg_match('/^[0-9a-f-]{36}$/i', $sceneId)) {
+                http_response_code(400);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Invalid scene ID format'
+                ]);
+                return;
+            }
+
+            // Validation : La scène existe-t-elle ?
+            $checkScene = $pdo->prepare('SELECT id FROM scenes WHERE id = :id');
+            $checkScene->execute(['id' => $sceneId]);
+            if (!$checkScene->fetch()) {
                 http_response_code(404);
                 echo json_encode([
                     'status' => 'error',
@@ -277,7 +304,7 @@ class TransitionController
             FROM scene_transitions st
             JOIN scenes sc ON sc.id = st.scene_before_id
             WHERE st.scene_after_id = :scene_id
-            ORDER BY st.transition_order ASC
+            ORDER BY st.transition_order, created_at ASC
             ');
             $stmt->execute(['scene_id' => $sceneId]);
             $prevTransitions = $stmt->fetchAll();
