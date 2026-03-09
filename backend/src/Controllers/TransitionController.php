@@ -304,7 +304,7 @@ class TransitionController
             FROM scene_transitions st
             JOIN scenes sc ON sc.id = st.scene_before_id
             WHERE st.scene_after_id = :scene_id
-            ORDER BY st.transition_order, created_at ASC
+            ORDER BY st.transition_order, st.created_at ASC
             ');
             $stmt->execute(['scene_id' => $sceneId]);
             $prevTransitions = $stmt->fetchAll();

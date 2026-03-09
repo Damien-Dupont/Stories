@@ -194,6 +194,15 @@ class TransitionApiTest extends ApiTestCase
         $this->assertEquals('ok', $data['status']);
         $this->assertCount(2, $data['data'], 'Should return 2 previous transitions');
 
+        $firstItem = $data['data'][0];
+        $this->assertArrayHasKey('transition_id', $firstItem);
+        $this->assertArrayHasKey('transition_label', $firstItem);
+        $this->assertArrayHasKey('transition_order', $firstItem);
+        $this->assertArrayHasKey('scene_id', $firstItem);
+        $this->assertArrayHasKey('scene_title', $firstItem);
+        $this->assertArrayHasKey('scene_type', $firstItem);
+        $this->assertArrayHasKey('emoji', $firstItem);
+
         // Vérifier que les scènes précédentes sont bien 1 et 3
         $sceneIds = array_column($data['data'], 'scene_id');
         $this->assertContains($this->persistentData['sceneOneId'], $sceneIds);

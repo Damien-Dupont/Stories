@@ -10,6 +10,34 @@ class SceneApiTest extends ApiTestCase
         $this->persistentData['chapterId'] = $this->createTestChapter();
     }
 
+    // TESTS :: CORS
+    /**
+     * @test
+     * Teste la requête OPTIONS sur /scenes
+     */
+    public function OPT__it_should_respond_with_CORS_headers_on_preflight(): void
+    {
+        $response = $this->client->options('/scenes');
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals('*', $response->getHeaderLine('Access-Control-Allow-Origin'));
+        $this->assertTrue($response->hasHeader('Access-Control-Allow-Methods'));
+    }
+
+    /**
+     * @test
+     * Teste que les headers CORS sont présents dans la réponse d'une requête sur /scenes
+     */
+    public function GET__it_should_include_CORS_headers_on_normal_request()
+    {
+        // ACT
+        $response = $this->client->get('/scenes');
+
+        // ASSERT
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals('*', $response->getHeaderLine('Access-Control-Allow-Origin'));
+    }
+
     // CRUD TESTS :: CREATION
 
     /**
