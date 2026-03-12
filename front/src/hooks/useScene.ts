@@ -9,7 +9,9 @@ interface Scene {
 export function useScene(sceneId: string): {
   loading: boolean;
   scene: Scene | null;
+  error?: string;
 } {
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [scene, setScene] = useState<Scene | null>(null);
   useEffect(() => {
@@ -23,5 +25,5 @@ export function useScene(sceneId: string): {
     fetchData();
   }, [sceneId]);
 
-  return { loading, scene };
+  return { loading, scene, error };
 }
