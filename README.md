@@ -1,6 +1,6 @@
 # Stories
 
-Plateforme de lecture interactive (Laravel + React + Docker)
+Plateforme de lecture interactive (PHP Laravel + React + Twine + Docker)
 
 ## Installation
 
