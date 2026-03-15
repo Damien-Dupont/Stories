@@ -28,4 +28,19 @@ describe("useScene", () => {
       expect(result.current.loading).toBe(false);
     });
   });
+
+  it("fetches next and previous transitions", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ status: "ok", data: [] }),
+    });
+    const { result } = renderHook(() => useScene("scene-123"));
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.nextTransitions).toBeDefined();
+    expect(result.current.prevTransitions).toBeDefined();
+  });
 });
