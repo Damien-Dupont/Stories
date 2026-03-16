@@ -8,7 +8,6 @@ describe("useScene", () => {
   });
 
   it("sets loading to false after fetch", async () => {
-    // On remplace fetch par une fausse version
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -23,7 +22,6 @@ describe("useScene", () => {
 
     const { result } = renderHook(() => useScene("scene-123"));
 
-    // On attend que loading passe à false
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
