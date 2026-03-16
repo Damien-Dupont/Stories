@@ -4,6 +4,7 @@ interface Transition {
   transition_id: string;
   transition_label: string;
   scene_id: string;
+  transition_order: number;
 }
 
 interface SceneContentProps {
@@ -11,6 +12,7 @@ interface SceneContentProps {
   contentMarkdown: string;
   nextTransitions?: Transition[];
   prevTransitions?: Transition[];
+  onTransitionClick?: (sceneId: string) => void;
 }
 
 export function SceneContent({
@@ -18,6 +20,7 @@ export function SceneContent({
   contentMarkdown,
   nextTransitions = [],
   prevTransitions = [],
+  onTransitionClick,
 }: SceneContentProps) {
   const renderedContent = marked.parse(contentMarkdown) as string;
 
@@ -26,9 +29,16 @@ export function SceneContent({
       {" "}
       {prevTransitions.length > 0 && (
         <ul>
-          {prevTransitions.map((t) => (
-            <li key={t.transition_id}>{t.transition_label}</li>
-          ))}
+          {[...prevTransitions]
+            .sort((a, b) => a.transition_order - b.transition_order)
+            .map((t) => (
+              <li
+                key={t.transition_id}
+                onClick={() => onTransitionClick?.(t.scene_id)}
+              >
+                {t.transition_label}
+              </li>
+            ))}
         </ul>
       )}
       <h1>{title}</h1>
@@ -41,9 +51,16 @@ export function SceneContent({
         <p>Fin de cette branche</p>
       ) : (
         <ul>
-          {nextTransitions.map((t) => (
-            <li key={t.transition_id}>{t.transition_label}</li>
-          ))}
+          {[...nextTransitions]
+            .sort((a, b) => a.transition_order - b.transition_order)
+            .map((t) => (
+              <li
+                key={t.transition_id}
+                onClick={() => onTransitionClick?.(t.scene_id)}
+              >
+                {t.transition_label}
+              </li>
+            ))}
         </ul>
       )}
     </div>

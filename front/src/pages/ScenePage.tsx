@@ -1,15 +1,15 @@
 import { useScene } from "../hooks/useScene";
 import { SceneContent } from "../components/SceneContent";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 export function ScenePage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { loading, scene, error, nextTransitions, prevTransitions } = useScene(
+    id ?? "",
+  );
 
   if (!id) return <p>Identifiant de scène manquant</p>;
-
-  const { loading, scene, error, nextTransitions, prevTransitions } =
-    useScene(id);
-
   if (error) return <p>{error}</p>;
   if (loading) return <p>Chargement...</p>;
 
@@ -17,7 +17,9 @@ export function ScenePage() {
     <SceneContent
       title={scene?.title ?? ""}
       contentMarkdown={scene?.content_markdown ?? ""}
-      //  next={nextTransitions?.transition_label ?? ""}
+      nextTransitions={nextTransitions ?? []}
+      prevTransitions={prevTransitions ?? []}
+      onTransitionClick={(sceneId) => navigate(`/scene/${sceneId}`)}
     />
   );
 }

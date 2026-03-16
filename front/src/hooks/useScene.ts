@@ -6,18 +6,28 @@ interface Scene {
   content_markdown: string;
 }
 
+interface Transition {
+  transition_id: string;
+  transition_label: string;
+  transition_order: number;
+  scene_id: string;
+  scene_title: string;
+  emoji?: string | null;
+  scene_type?: string;
+}
+
 export function useScene(sceneId: string): {
   loading: boolean;
   scene: Scene | null;
   error?: string | null;
-  nextTransitions?: string[];
-  prevTransitions?: string[];
+  nextTransitions?: Transition[];
+  prevTransitions?: Transition[];
 } {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [scene, setScene] = useState<Scene | null>(null);
-  const [nextTransitions, setNextTransitions] = useState<string[]>([]);
-  const [prevTransitions, setPrevTransitions] = useState<string[]>([]);
+  const [nextTransitions, setNextTransitions] = useState<Transition[]>([]);
+  const [prevTransitions, setPrevTransitions] = useState<Transition[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,9 +41,9 @@ export function useScene(sceneId: string): {
         const sceneJson = await sceneRes.json();
         setScene(sceneJson.data);
         const nextJson = await nextRes.json();
-        setNextTransitions(nextJson);
+        setNextTransitions(nextJson.data);
         const prevJson = await prevRes.json();
-        setPrevTransitions(prevJson);
+        setPrevTransitions(prevJson.data);
         setLoading(false);
       } catch {
         setError("erreur au chargemenbt");
