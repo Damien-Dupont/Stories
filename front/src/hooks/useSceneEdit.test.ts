@@ -1,4 +1,4 @@
-import { renderHook, waitFor, screen } from "@testing-library/react";
+import { renderHook } from "@testing-library/react";
 import { useSceneEdit } from "./useSceneEdit.ts";
 
 describe("useSceneEdit", () => {
