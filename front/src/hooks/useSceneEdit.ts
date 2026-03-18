@@ -1,10 +1,19 @@
 import { useState, useEffect } from "react";
 
 export function useSceneEdit(sceneId: string) {
+  //   loading: boolean;
+  //   scene: Scene | null;
+  //   error?: string | null;
+  //   nextTransitions?: Transition[];
+  //   prevTransitions?: Transition[];
+  // } {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [contentMarkdown, setContentMarkdown] = useState("");
+
+  // const setTitleHandler = (newTitle: string) => setTitle(newTitle);
+  // const setContentHandler = (newContentMarkdown: string) => setTitle(newContentMarkdown);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -22,5 +31,12 @@ export function useSceneEdit(sceneId: string) {
     fetchData();
   }, [sceneId]);
 
-  return { title, contentMarkdown, loading, error };
+  return {
+    title,
+    contentMarkdown,
+    loading,
+    error,
+    setTitle,
+    setContentMarkdown,
+  };
 }
