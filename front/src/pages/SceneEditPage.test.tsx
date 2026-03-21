@@ -5,64 +5,54 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 
 vi.mock("../hooks/useSceneEdit");
 
+//**
+// *
+// * Helper mockUseSceneEdit
+// */
+const mockUseSceneEdit = (overrides = {}) => {
+  vi.mocked(useSceneEdit).mockReturnValue({
+    title: "La forêt",
+    contentMarkdown: "# Début",
+    loading: false,
+    error: null,
+    setTitle: vi.fn(),
+    setContentMarkdown: vi.fn(),
+    ...overrides,
+  });
+};
+
+//**
+// *
+// * Helper renderEditPage
+// */
+const renderEditPage = () => {
+  render(
+    <MemoryRouter initialEntries={["/scenes/scene-123/edit"]}>
+      <Routes>
+        <Route path="/scenes/:id/edit" element={<SceneEditPage />} />
+      </Routes>
+    </MemoryRouter>,
+  );
+};
+
 describe("SceneEditPage", () => {
   it("displays actual title in an editable field", () => {
-    vi.mocked(useSceneEdit).mockReturnValue({
-      title: "La forêt",
-      contentMarkdown: "# Début",
-      loading: false,
-      error: null,
-      setTitle: vi.fn(),
-      setContentMarkdown: vi.fn(),
-    });
-
-    render(
-      <MemoryRouter initialEntries={["/scenes/scene-123/edit"]}>
-        <Routes>
-          <Route path="/scenes/:id/edit" element={<SceneEditPage />} />
-        </Routes>
-      </MemoryRouter>,
-    );
+    mockUseSceneEdit();
+    renderEditPage();
     expect(screen.getByDisplayValue("La forêt")).toBeInTheDocument();
   });
 
   it("displays actual Markdown in an editable textarea", () => {
-    vi.mocked(useSceneEdit).mockReturnValue({
-      title: "La forêt",
-      contentMarkdown: "# Début",
-      loading: false,
-      error: null,
-      setTitle: vi.fn(),
-      setContentMarkdown: vi.fn(),
-    });
+    mockUseSceneEdit();
 
-    render(
-      <MemoryRouter initialEntries={["/scenes/scene-123/edit"]}>
-        <Routes>
-          <Route path="/scenes/:id/edit" element={<SceneEditPage />} />
-        </Routes>
-      </MemoryRouter>,
-    );
+    renderEditPage();
     expect(screen.getByDisplayValue("# Début")).toBeInTheDocument();
   });
 
   it("updates title when user types", () => {
     const setTitle = vi.fn();
-    vi.mocked(useSceneEdit).mockReturnValue({
-      title: "La forêt",
-      contentMarkdown: "# Début",
-      loading: false,
-      error: null,
-      setTitle,
-      setContentMarkdown: vi.fn(),
-    });
-    render(
-      <MemoryRouter initialEntries={["/scenes/scene-123/edit"]}>
-        <Routes>
-          <Route path="/scenes/:id/edit" element={<SceneEditPage />} />
-        </Routes>
-      </MemoryRouter>,
-    );
+    mockUseSceneEdit({ setTitle });
+    renderEditPage();
     fireEvent.change(screen.getByDisplayValue("La forêt"), {
       target: { value: "Nouveau titre" },
     });
