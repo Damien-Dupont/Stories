@@ -11,6 +11,7 @@ export function SceneEditPage() {
     setTitle,
     setContentMarkdown,
     save,
+    saveStatus,
   } = useSceneEdit(id ?? "");
 
   if (!id) return <p>Identifiant de scène manquant</p>;
@@ -19,6 +20,8 @@ export function SceneEditPage() {
 
   return (
     <div>
+      {saveStatus === "success" && <p>Sauvegarde réussie</p>}
+      {saveStatus === "error" && <p>Erreur lors de la sauvegarde</p>}
       <button onClick={save}>Sauvegarder</button>
       <input value={title} onChange={(e) => setTitle(e.target.value)} />
       <textarea
