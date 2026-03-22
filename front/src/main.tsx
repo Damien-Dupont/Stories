@@ -2,13 +2,15 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ScenePage } from "./pages/ScenePage.tsx";
+import { SceneEditPage } from "./pages/SceneEditPage.tsx";
 import "./index.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
-        <Route path="/scene/:id" element={<ScenePage />} />
+        <Route path="/scenes/:id" element={<ScenePage />} />
+        <Route path="/scenes/:id/edit" element={<SceneEditPage />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,

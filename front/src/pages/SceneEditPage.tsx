@@ -1,5 +1,6 @@
 import { useSceneEdit } from "../hooks/useSceneEdit";
 import { useParams } from "react-router-dom";
+import { SceneContent } from "../components/SceneContent";
 
 export function SceneEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -28,6 +29,9 @@ export function SceneEditPage() {
         value={contentMarkdown}
         onChange={(e) => setContentMarkdown(e.target.value)}
       />
+      <div>
+        <SceneContent title="" contentMarkdown={contentMarkdown} />Ò
+      </div>
     </div>
   );
 }

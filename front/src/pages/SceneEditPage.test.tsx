@@ -92,4 +92,10 @@ describe("SceneEditPage", () => {
       screen.getByText("Erreur lors de la sauvegarde"),
     ).toBeInTheDocument();
   });
+
+  it("displays a rendered Markdown preview", () => {
+    mockUseSceneEdit();
+    renderEditPage();
+    expect(screen.getByRole("heading", { name: "Début" })).toBeInTheDocument();
+  });
 });
