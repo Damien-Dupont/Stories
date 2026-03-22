@@ -6,7 +6,6 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 vi.mock("../hooks/useSceneEdit");
 
 //**
-// *
 // * Helper mockUseSceneEdit
 // */
 const mockUseSceneEdit = (overrides = {}) => {
@@ -18,12 +17,12 @@ const mockUseSceneEdit = (overrides = {}) => {
     setTitle: vi.fn(),
     setContentMarkdown: vi.fn(),
     save: vi.fn(),
+    saveStatus: "idle",
     ...overrides,
   });
 };
 
 //**
-// *
 // * Helper renderEditPage
 // */
 const renderEditPage = () => {
@@ -71,11 +70,26 @@ describe("SceneEditPage", () => {
 
   it("initiate save function when 'save' button is clicked", () => {
     const save = vi.fn();
-
     mockUseSceneEdit({ save });
     renderEditPage();
+    fireEvent.click(screen.getByText("Sauvegarder"));
 
-    fireEvent.click(screen.getByText(/Sauvegarder/));
     expect(save).toHaveBeenCalledTimes(1);
+  });
+
+  it("displays success message after saving", () => {
+    mockUseSceneEdit({ saveStatus: "success" });
+    renderEditPage();
+
+    expect(screen.getByText("Sauvegarde réussie")).toBeInTheDocument();
+  });
+
+  it("displays error message if saving fails", () => {
+    mockUseSceneEdit({ saveStatus: "error" });
+    renderEditPage();
+
+    expect(
+      screen.getByText("Erreur lors de la sauvegarde"),
+    ).toBeInTheDocument();
   });
 });

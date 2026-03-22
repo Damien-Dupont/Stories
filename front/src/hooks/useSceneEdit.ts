@@ -1,10 +1,14 @@
 import { useState, useEffect } from "react";
 
+type SaveStatus = "idle" | "success" | "error";
+
 export function useSceneEdit(sceneId: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [contentMarkdown, setContentMarkdown] = useState("");
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+
   const save = async () => {
     try {
       await fetch(`http://localhost:8080/scenes/${sceneId}`, {
@@ -13,6 +17,7 @@ export function useSceneEdit(sceneId: string) {
         body: JSON.stringify({ title, content_markdown: contentMarkdown }),
       });
     } catch {
+      setSaveStatus("error");
       setError("Erreur lors de la sauvegarde");
     }
   };
@@ -41,5 +46,6 @@ export function useSceneEdit(sceneId: string) {
     setTitle,
     setContentMarkdown,
     save,
+    saveStatus,
   };
 }
