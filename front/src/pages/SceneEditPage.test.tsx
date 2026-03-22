@@ -17,6 +17,7 @@ const mockUseSceneEdit = (overrides = {}) => {
     error: null,
     setTitle: vi.fn(),
     setContentMarkdown: vi.fn(),
+    save: vi.fn(),
     ...overrides,
   });
 };
@@ -58,5 +59,23 @@ describe("SceneEditPage", () => {
     });
 
     expect(setTitle).toHaveBeenCalledWith("Nouveau titre");
+  });
+
+  it("displays a save button", () => {
+    mockUseSceneEdit();
+    renderEditPage();
+    expect(
+      screen.getByRole("button", { name: "Sauvegarder" }),
+    ).toBeInTheDocument();
+  });
+
+  it("initiate save function when 'save' button is clicked", () => {
+    const save = vi.fn();
+
+    mockUseSceneEdit({ save });
+    renderEditPage();
+
+    fireEvent.click(screen.getByText(/Sauvegarder/));
+    expect(save).toHaveBeenCalledTimes(1);
   });
 });

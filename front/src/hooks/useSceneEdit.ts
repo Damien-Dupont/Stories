@@ -1,19 +1,21 @@
 import { useState, useEffect } from "react";
 
 export function useSceneEdit(sceneId: string) {
-  //   loading: boolean;
-  //   scene: Scene | null;
-  //   error?: string | null;
-  //   nextTransitions?: Transition[];
-  //   prevTransitions?: Transition[];
-  // } {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [contentMarkdown, setContentMarkdown] = useState("");
-
-  // const setTitleHandler = (newTitle: string) => setTitle(newTitle);
-  // const setContentHandler = (newContentMarkdown: string) => setTitle(newContentMarkdown);
+  const save = async () => {
+    try {
+      await fetch(`http://localhost:8080/scenes/${sceneId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, content_markdown: contentMarkdown }),
+      });
+    } catch {
+      setError("Erreur lors de la sauvegarde");
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -38,5 +40,6 @@ export function useSceneEdit(sceneId: string) {
     error,
     setTitle,
     setContentMarkdown,
+    save,
   };
 }
