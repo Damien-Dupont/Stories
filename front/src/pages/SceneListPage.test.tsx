@@ -33,12 +33,28 @@ describe("SceneListPage", () => {
   it("displays list of titles of scenes", () => {
     mockUseSceneList();
     renderListPage();
-    expect(screen.getByText("La forêt")).toBeInTheDocument();
+    expect(screen.getByText(/La forêt/)).toBeInTheDocument(); // by regex !
   });
 
   it("displays a reading link on every scene", () => {
     mockUseSceneList();
     renderListPage();
     expect(screen.getAllByRole("link", { name: /Lire/i })).toHaveLength(2);
+  });
+
+  it("displays an edit link on every scene", () => {
+    mockUseSceneList();
+    renderListPage();
+    expect(screen.getAllByRole("link", { name: /Editer/i })).toHaveLength(2);
+  });
+
+  it("displays a message if the list is empty", () => {
+    vi.mocked(useSceneList).mockReturnValue({
+      scenes: [],
+      loading: false,
+      error: null,
+    });
+    renderListPage();
+    expect(screen.getByText(/Aucune scène pour le moment/)).toBeInTheDocument();
   });
 });
