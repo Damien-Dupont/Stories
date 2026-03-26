@@ -1,6 +1,7 @@
 import { useSceneEdit } from "../hooks/useSceneEdit";
 import { useParams } from "react-router-dom";
 import { SceneContent } from "../components/SceneContent";
+import { TransitionForm } from "../components/TransitionForm";
 
 export function SceneEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -30,7 +31,9 @@ export function SceneEditPage() {
         onChange={(e) => setContentMarkdown(e.target.value)}
       />
       <div>
+        <TransitionForm scenes={[]} label="Scène précédente" />
         <SceneContent title="" contentMarkdown={contentMarkdown} />Ò
+        <TransitionForm scenes={[]} label="Scène suivante" />
       </div>
     </div>
   );
