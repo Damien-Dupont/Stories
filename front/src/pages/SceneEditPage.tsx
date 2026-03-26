@@ -31,10 +31,23 @@ export function SceneEditPage() {
         onChange={(e) => setContentMarkdown(e.target.value)}
       />
       <div>
-        <TransitionForm scenes={[]} label="Scène précédente" />
+        <TransitionForm
+          scenes={[]}
+          onTransitionCreate={(sceneId) =>
+            console.log("transition vers", sceneId)
+          }
+          label="Scène précédente"
+        />
         <SceneContent title="" contentMarkdown={contentMarkdown} />Ò
-        <TransitionForm scenes={[]} label="Scène suivante" />
+        <TransitionForm
+          scenes={[]}
+          onTransitionCreate={(sceneId) =>
+            console.log("transition vers", sceneId)
+          }
+          label="Scène suivante"
+        />
       </div>
     </div>
   );
 }
+// TODO: remplacer textarea par TipTap
