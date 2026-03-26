@@ -51,7 +51,7 @@ class TransitionApiTest extends ApiTestCase
 
         $this->assertEquals($this->persistentData['sceneOneId'], $transition['scene_before_id']);
         $this->assertEquals($this->persistentData['sceneTwoId'], $transition['scene_after_id']);
-        $this->assertEquals('Par là', $transition['transition_label']);
+        $this->assertEquals('Par là', $transition['label_forward']);
         $this->assertEquals(1, $transition['transition_order']);
     }
 
@@ -68,7 +68,7 @@ class TransitionApiTest extends ApiTestCase
             'json' => [
                 'scene_before_id' => $this->persistentData['sceneOneId'],
                 'scene_after_id' => $this->persistentData['sceneTwoId'],
-                'transition_label' => 'Continuer',
+                'label_forward' => 'Continuer',
                 'transition_order' => 1
             ]
         ]);
@@ -77,7 +77,7 @@ class TransitionApiTest extends ApiTestCase
             'json' => [
                 'scene_before_id' => $this->persistentData['sceneTwoId'],
                 'scene_after_id' => $this->persistentData['sceneThreeId'],
-                'transition_label' => 'Suivant',
+                'label_forward' => 'Suivant',
                 'transition_order' => 1
             ]
         ]);
@@ -86,7 +86,7 @@ class TransitionApiTest extends ApiTestCase
             'json' => [
                 'scene_before_id' => $this->persistentData['sceneThreeId'],
                 'scene_after_id' => $scene4Id,
-                'transition_label' => 'Fin',
+                'label_forward' => 'Fin',
                 'transition_order' => 1
             ]
         ]);
@@ -106,7 +106,7 @@ class TransitionApiTest extends ApiTestCase
         $firstTransition = $data['data'][0];
         $this->assertEquals($this->persistentData['sceneOneId'], $firstTransition['from_scene']);
         $this->assertEquals($this->persistentData['sceneTwoId'], $firstTransition['to_scene']);
-        $this->assertEquals('Continuer', $firstTransition['transition_label']);
+        $this->assertEquals('Continuer', $firstTransition['label_forward']);
     }
 
 
@@ -121,7 +121,7 @@ class TransitionApiTest extends ApiTestCase
             'json' => [
                 'scene_before_id' => $this->persistentData['sceneOneId'],
                 'scene_after_id' => $this->persistentData['sceneTwoId'],
-                'transition_label' => 'Aller à droite',
+                'label_forward' => 'Aller à droite',
                 'transition_order' => 1
             ]
         ]);
@@ -130,7 +130,7 @@ class TransitionApiTest extends ApiTestCase
             'json' => [
                 'scene_before_id' => $this->persistentData['sceneOneId'],
                 'scene_after_id' => $this->persistentData['sceneThreeId'],
-                'transition_label' => 'Aller à gauche',
+                'label_forward' => 'Aller à gauche',
                 'transition_order' => 2
             ]
         ]);
@@ -148,13 +148,13 @@ class TransitionApiTest extends ApiTestCase
 
         // ASSERT - Vérifier le contenu des transitions (ordre correct)
         $firstTransition = $data['data'][0];
-        $this->assertEquals('Aller à droite', $firstTransition['transition_label']);
+        $this->assertEquals('Aller à droite', $firstTransition['label_forward']);
         $this->assertEquals(1, $firstTransition['transition_order']);
         $this->assertEquals($this->persistentData['sceneTwoId'], $firstTransition['scene_id']);
         $this->assertEquals('Par là', $firstTransition['scene_title']);
 
         $secondTransition = $data['data'][1];
-        $this->assertEquals('Aller à gauche', $secondTransition['transition_label']);
+        $this->assertEquals('Aller à gauche', $secondTransition['label_forward']);
         $this->assertEquals(2, $secondTransition['transition_order']);
         $this->assertEquals($this->persistentData['sceneThreeId'], $secondTransition['scene_id']);
         $this->assertEquals('Par ici', $secondTransition['scene_title']);
@@ -196,7 +196,7 @@ class TransitionApiTest extends ApiTestCase
 
         $firstItem = $data['data'][0];
         $this->assertArrayHasKey('transition_id', $firstItem);
-        $this->assertArrayHasKey('transition_label', $firstItem);
+        $this->assertArrayHasKey('label_forward', $firstItem);
         $this->assertArrayHasKey('transition_order', $firstItem);
         $this->assertArrayHasKey('scene_id', $firstItem);
         $this->assertArrayHasKey('scene_title', $firstItem);

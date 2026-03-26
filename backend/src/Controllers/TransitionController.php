@@ -82,7 +82,7 @@ class TransitionController
             st.id as transition_id,
             st.scene_before_id as from_scene,
             st.scene_after_id as to_scene,
-            st.transition_label,
+            st.label_forward,
             st.transition_order,
             st.created_at
             FROM scene_transitions st
@@ -149,10 +149,10 @@ class TransitionController
                 return;
             }
 
-            if (empty($input['transition_label'])) {
+            if (empty($input['label_forward'])) {
                 $sceneAfter = self::getSceneById($pdo, $input['scene_after_id']);
 
-                $input['transition_label'] = $sceneAfter ? $sceneAfter['title'] : 'Suivant';
+                $input['label_forward'] = $sceneAfter ? $sceneAfter['title'] : 'Suivant';
             }
 
 
@@ -168,11 +168,11 @@ class TransitionController
             }
             // TODO: penser à créer un lien 'to be continued' réutilisable menant vers une page "salle d'attente" pour les liens vers des pages non publiées ou inexistantes
 
-            $stmt = $pdo->prepare('INSERT INTO scene_transitions (scene_before_id, scene_after_id, transition_label, transition_order) VALUES (:scene_before_id, :scene_after_id, :transition_label, :transition_order) RETURNING id, created_at');
+            $stmt = $pdo->prepare('INSERT INTO scene_transitions (scene_before_id, scene_after_id, label_forward, transition_order) VALUES (:scene_before_id, :scene_after_id, :label_forward, :transition_order) RETURNING id, created_at');
             $stmt->execute([
                 'scene_before_id' => $input['scene_before_id'],
                 'scene_after_id' => $input['scene_after_id'],
-                'transition_label' => $input['transition_label'],
+                'label_forward' => $input['label_forward'],
                 'transition_order' => $input['transition_order']
             ]);
             $result = $stmt->fetch();
@@ -238,7 +238,7 @@ class TransitionController
             $stmt = $pdo->prepare('
             SELECT
                 st.id as transition_id,
-                st.transition_label,
+                st.label_forward,
                 st.transition_order,
                 sc.id as scene_id,
                 sc.title as scene_title,
@@ -295,7 +295,7 @@ class TransitionController
             $stmt = $pdo->prepare('
             SELECT
                 st.id as transition_id,
-                st.transition_label,
+                st.label_forward,
                 st.transition_order,
                 sc.id as scene_id,
                 sc.title as scene_title,
