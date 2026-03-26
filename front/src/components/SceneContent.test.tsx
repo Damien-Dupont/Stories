@@ -23,13 +23,13 @@ describe("SceneContent", () => {
     const nextTransitions = [
       {
         transition_id: "1",
-        transition_label: "Entrer dans la forêt",
+        label_forward: "Entrer dans la forêt",
         scene_id: "abc",
         transition_order: 1,
       },
       {
         transition_id: "2",
-        transition_label: "Rebrousser chemin",
+        label_forward: "Rebrousser chemin",
         scene_id: "def",
         transition_order: 2,
       },
@@ -51,13 +51,13 @@ describe("SceneContent", () => {
     const prevTransitions = [
       {
         transition_id: "1",
-        transition_label: "Revenir à la clairière",
+        label_forward: "Revenir à la clairière",
         scene_id: "abc",
         transition_order: 1,
       },
       {
         transition_id: "2",
-        transition_label: "Retourner au village",
+        label_forward: "Retourner au village",
         scene_id: "def",
         transition_order: 2,
       },
@@ -92,13 +92,13 @@ describe("SceneContent", () => {
     const nextTransitions = [
       {
         transition_id: "1",
-        transition_label: "Entrer dans la forêt",
+        label_forward: "Entrer dans la forêt",
         scene_id: "abc",
         transition_order: 1,
       },
       {
         transition_id: "2",
-        transition_label: "Rebrousser chemin",
+        label_forward: "Rebrousser chemin",
         scene_id: "def",
         transition_order: 2,
       },

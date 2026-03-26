@@ -2,7 +2,7 @@ import { marked } from "marked";
 
 interface Transition {
   transition_id: string;
-  transition_label: string;
+  label_forward: string;
   scene_id: string;
   transition_order: number;
 }
@@ -36,7 +36,7 @@ export function SceneContent({
                 key={t.transition_id}
                 onClick={() => onTransitionClick?.(t.scene_id)}
               >
-                {t.transition_label}
+                {t.label_forward}
               </li>
             ))}
         </ul>
@@ -58,7 +58,7 @@ export function SceneContent({
                 key={t.transition_id}
                 onClick={() => onTransitionClick?.(t.scene_id)}
               >
-                {t.transition_label}
+                {t.label_forward}
               </li>
             ))}
         </ul>

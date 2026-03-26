@@ -8,7 +8,7 @@ interface Scene {
 
 interface Transition {
   transition_id: string;
-  transition_label: string;
+  label_forward: string;
   transition_order: number;
   scene_id: string;
   scene_title: string;
@@ -46,7 +46,7 @@ export function useScene(sceneId: string): {
         setPrevTransitions(prevJson.data);
         setLoading(false);
       } catch {
-        setError("erreur au chargemenbt");
+        setError("erreur au chargement");
         setLoading(false);
       }
     };
