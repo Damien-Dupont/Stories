@@ -98,4 +98,26 @@ describe("SceneEditPage", () => {
     renderEditPage();
     expect(screen.getByRole("heading", { name: "Début" })).toBeInTheDocument();
   });
+
+  it("displays two selectors, before and after markdown content", () => {
+    mockUseSceneEdit({ contentMarkdown: "" });
+    renderEditPage();
+
+    const prevSelect = screen.getByPlaceholderText("Scène précédente");
+    const nextSelect = screen.getByPlaceholderText("Scène suivante");
+
+    const content = screen.getByText(/Aucun contenu disponible/i);
+
+    // prevSelect est AVANT content
+    expect(
+      prevSelect.compareDocumentPosition(content) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    // nextSelect est APRÈS content
+    expect(
+      nextSelect.compareDocumentPosition(content) &
+        Node.DOCUMENT_POSITION_PRECEDING,
+    ).toBeTruthy();
+  });
 });

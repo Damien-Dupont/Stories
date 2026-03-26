@@ -1,6 +1,5 @@
 import { render, screen } from "@testing-library/react";
 import { TransitionForm } from "./TransitionForm.tsx";
-import { SceneEditPage } from "../pages/SceneEditPage.tsx";
 
 describe("TransitionForm", () => {
   it("displays a field to input transition label", () => {
@@ -26,27 +25,6 @@ describe("TransitionForm", () => {
     expect(
       screen.getByRole("option", { name: "La forêt" }),
     ).toBeInTheDocument();
-  });
-
-  it("displays a second selector for next scenes", () => {
-    render(<SceneEditPage />);
-
-    const prevSelect = screen.getByLabelText("Transition précédente");
-    const nextSelect = screen.getByLabelText("Transition suivante");
-
-    const content = screen.getByText(/Aucun contenu disponible/i);
-
-    // prevSelect est AVANT content
-    expect(
-      prevSelect.compareDocumentPosition(content) &
-        Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
-
-    // nextSelect est APRÈS content
-    expect(
-      nextSelect.compareDocumentPosition(content) &
-        Node.DOCUMENT_POSITION_PRECEDING,
-    ).toBeTruthy();
   });
 
   // it("", ()=>{})
