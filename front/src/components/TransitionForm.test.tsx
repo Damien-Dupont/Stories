@@ -42,7 +42,7 @@ describe("TransitionForm", () => {
     ).toBeInTheDocument();
   });
 
-  it("calls onTransitionCreate with proper scene_id when a scene is selected for transition", () => {
+  it("calls onTransitionCreate when a scene is selected for transition", () => {
     render(
       <TransitionForm
         scenes={[{ id: "1", title: "La forêt" }]}
@@ -58,6 +58,4 @@ describe("TransitionForm", () => {
 
     expect(onTransitionCreate).toHaveBeenCalledWith("1");
   });
-
-  // it("", ()=>{})
 });
