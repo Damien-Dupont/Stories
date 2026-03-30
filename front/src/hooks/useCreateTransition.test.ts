@@ -35,5 +35,28 @@ describe("useCreateTransition", () => {
     expect(result.current.status).toBe("error");
   });
 
-  // it("", ()=>{})
+  it("calls createTransition with the proper body", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ status: "ok", data: {} }),
+    });
+
+    const { result } = renderHook(() => useCreateTransition("lalala"));
+
+    await act(async () => {
+      await result.current.createTransition("bububu", "Aller dans la forêt");
+    });
+
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      `http://localhost:8080/transitions/lalala`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          forwardScene: "bububu",
+          forwardLabel: "Aller dans la forêt",
+        }),
+      },
+    );
+  });
 });
