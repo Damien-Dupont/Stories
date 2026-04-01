@@ -2,8 +2,12 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { SceneEditPage } from "./SceneEditPage.tsx";
 import { useSceneEdit } from "../hooks/useSceneEdit.ts";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { useCreateTransition } from "../hooks/useCreateTransition.ts";
+import { useSceneList } from "../hooks/useSceneList.ts";
 
 vi.mock("../hooks/useSceneEdit");
+vi.mock("../hooks/useSceneList");
+vi.mock("../hooks/useCreateTransition");
 
 //**
 // * Helper mockUseSceneEdit
@@ -35,16 +39,43 @@ const renderEditPage = () => {
   );
 };
 
+//**
+// * Helper mockUseSceneList
+// */
+const mockUseSceneList = () => {
+  vi.mocked(useSceneList).mockReturnValue({
+    scenes: [
+      { id: "123", title: "le couloir" },
+      { id: "132", title: "le balcon" },
+    ],
+    loading: false,
+    error: null,
+  });
+};
+
+//**
+// * Helper mockUseCreateTransition
+// */
+const mockUseCreateTransition = () => {
+  vi.mocked(useCreateTransition).mockReturnValue({
+    createTransition: vi.fn(),
+    error: null,
+    status: "success",
+  });
+};
+
 describe("SceneEditPage", () => {
-  it("displays actual title in an editable field", () => {
+  beforeEach(() => {
     mockUseSceneEdit();
+    mockUseSceneList();
+    mockUseCreateTransition();
+  });
+  it("displays actual title in an editable field", () => {
     renderEditPage();
     expect(screen.getByDisplayValue("La forêt")).toBeInTheDocument();
   });
 
   it("displays actual Markdown in an editable textarea", () => {
-    mockUseSceneEdit();
-
     renderEditPage();
     expect(screen.getByDisplayValue("# Début")).toBeInTheDocument();
   });
@@ -61,7 +92,6 @@ describe("SceneEditPage", () => {
   });
 
   it("displays a save button", () => {
-    mockUseSceneEdit();
     renderEditPage();
     expect(
       screen.getByRole("button", { name: "Sauvegarder" }),
@@ -94,7 +124,6 @@ describe("SceneEditPage", () => {
   });
 
   it("displays a rendered Markdown preview", () => {
-    mockUseSceneEdit();
     renderEditPage();
     expect(screen.getByRole("heading", { name: "Début" })).toBeInTheDocument();
   });
@@ -108,16 +137,30 @@ describe("SceneEditPage", () => {
 
     const content = screen.getByText(/Aucun contenu disponible/i);
 
-    // prevSelect est AVANT content
+    // prevSelect is BEFORE content
     expect(
       prevSelect.compareDocumentPosition(content) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
 
-    // nextSelect est APRÈS content
+    // nextSelect is AFTER content
     expect(
       nextSelect.compareDocumentPosition(content) &
         Node.DOCUMENT_POSITION_PRECEDING,
     ).toBeTruthy();
   });
+
+  it("populates TransitionForm with scenes from useSceneList", () => {
+    renderEditPage();
+
+    expect(screen.getAllByRole("option")).toHaveLength(2);
+  });
+
+  //  it("calls createTransition when a scene is selected in TransitionFrom", () => {})
+
+  //  it("displays success message after transition is created", () => {})
+
+  //   it("displays error message if transition creation fails", () => {})
+
+  //  it("", () => {})
 });

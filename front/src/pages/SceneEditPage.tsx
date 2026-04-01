@@ -2,6 +2,7 @@ import { useSceneEdit } from "../hooks/useSceneEdit";
 import { useParams } from "react-router-dom";
 import { SceneContent } from "../components/SceneContent";
 import { TransitionForm } from "../components/TransitionForm";
+import { useSceneList } from "../hooks/useSceneList";
 
 export function SceneEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -16,9 +17,13 @@ export function SceneEditPage() {
     saveStatus,
   } = useSceneEdit(id ?? "");
 
+  const { scenes, loading: scenesLoading, error: scenesError } = useSceneList();
+
   if (!id) return <p>Identifiant de scène manquant</p>;
   if (error) return <p>{error}</p>;
   if (loading) return <p>Chargement...</p>;
+  if (scenesError) return <p>{error}</p>;
+  if (scenesLoading) return <p>Chargement...</p>;
 
   return (
     <div>
@@ -32,7 +37,7 @@ export function SceneEditPage() {
       />
       <div>
         <TransitionForm
-          scenes={[]}
+          scenes={scenes}
           onTransitionCreate={(sceneId) =>
             console.log("transition vers", sceneId)
           }

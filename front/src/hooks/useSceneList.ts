@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 interface Scene {
   id: string;
   title: string;
-  global_order: number;
+  global_order?: number;
 }
 
 export function useSceneList() {
