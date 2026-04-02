@@ -1,7 +1,7 @@
 interface TransitionFormProps {
   scenes: { id: string; title: string }[];
   label: string;
-  onTransitionCreate: (sceneId: string) => void;
+  onTransitionCreate?: (sceneId: string) => void;
 }
 
 export function TransitionForm({

@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { SceneContent } from "../components/SceneContent";
 import { TransitionForm } from "../components/TransitionForm";
 import { useSceneList } from "../hooks/useSceneList";
+import { useCreateTransition } from "../hooks/useCreateTransition";
 
 export function SceneEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +19,8 @@ export function SceneEditPage() {
   } = useSceneEdit(id ?? "");
 
   const { scenes, loading: scenesLoading, error: scenesError } = useSceneList();
+
+  const { createTransition } = useCreateTransition(id ?? "");
 
   if (!id) return <p>Identifiant de scène manquant</p>;
   if (error) return <p>{error}</p>;
@@ -36,19 +39,11 @@ export function SceneEditPage() {
         onChange={(e) => setContentMarkdown(e.target.value)}
       />
       <div>
+        <p>Transitions précédentes : à venir</p>
+        <SceneContent title="" contentMarkdown={contentMarkdown} />
         <TransitionForm
           scenes={scenes}
-          onTransitionCreate={(sceneId) =>
-            console.log("transition vers", sceneId)
-          }
-          label="Scène précédente"
-        />
-        <SceneContent title="" contentMarkdown={contentMarkdown} />Ò
-        <TransitionForm
-          scenes={[]}
-          onTransitionCreate={(sceneId) =>
-            console.log("transition vers", sceneId)
-          }
+          onTransitionCreate={(sceneId) => createTransition(sceneId, title)}
           label="Scène suivante"
         />
       </div>

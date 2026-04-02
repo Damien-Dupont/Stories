@@ -56,11 +56,12 @@ const mockUseSceneList = () => {
 //**
 // * Helper mockUseCreateTransition
 // */
-const mockUseCreateTransition = () => {
+const mockUseCreateTransition = (overrides = {}) => {
   vi.mocked(useCreateTransition).mockReturnValue({
     createTransition: vi.fn(),
     error: null,
     status: "success",
+    ...overrides,
   });
 };
 
@@ -128,20 +129,13 @@ describe("SceneEditPage", () => {
     expect(screen.getByRole("heading", { name: "Début" })).toBeInTheDocument();
   });
 
-  it("displays two selectors, before and after markdown content", () => {
+  it("displays transition form after markdown content", () => {
     mockUseSceneEdit({ contentMarkdown: "" });
     renderEditPage();
 
-    const prevSelect = screen.getByPlaceholderText("Scène précédente");
     const nextSelect = screen.getByPlaceholderText("Scène suivante");
 
     const content = screen.getByText(/Aucun contenu disponible/i);
-
-    // prevSelect is BEFORE content
-    expect(
-      prevSelect.compareDocumentPosition(content) &
-        Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
 
     // nextSelect is AFTER content
     expect(
@@ -152,11 +146,18 @@ describe("SceneEditPage", () => {
 
   it("populates TransitionForm with scenes from useSceneList", () => {
     renderEditPage();
-
     expect(screen.getAllByRole("option")).toHaveLength(2);
   });
 
-  //  it("calls createTransition when a scene is selected in TransitionFrom", () => {})
+  it("calls createTransition when a scene is selected in TransitionFrom", () => {
+    const createTransition = vi.fn();
+    mockUseCreateTransition({ createTransition });
+    renderEditPage();
+    fireEvent.change(screen.getByRole("combobox"), {
+      target: { value: "132" },
+    });
+    expect(createTransition).toHaveBeenCalledWith("132", "La forêt");
+  });
 
   //  it("displays success message after transition is created", () => {})
 
