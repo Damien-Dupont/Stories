@@ -8,8 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest --exclude **/*.integration.test.ts",
-    "test:integration": "vitest --reporter=verbose *.integration.test.ts",
+    "test": "vitest --exclude src/**/*.integration.test.ts",
+    "test:integration": "vitest src/**/*.integration.test.ts",
     "test:ui": "vitest --ui"
   },
   "dependencies": {
