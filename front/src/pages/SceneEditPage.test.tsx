@@ -159,9 +159,22 @@ describe("SceneEditPage", () => {
     expect(createTransition).toHaveBeenCalledWith("132", "La forêt");
   });
 
-  //  it("displays success message after transition is created", () => {})
+  it("displays success message after transition is created", () => {
+    const createTransition = vi.fn();
+    mockUseCreateTransition({ createTransition });
+    renderEditPage();
+    fireEvent.change(screen.getByRole("combobox"), {
+      target: { value: "132" },
+    });
+    expect(screen.getByText("Transition ajoutée")).toBeInTheDocument();
+  });
 
-  //   it("displays error message if transition creation fails", () => {})
+  it("displays error message if transition creation fails", () => {
+    mockUseCreateTransition({ error: "Transition en erreur", status: "error" });
+    renderEditPage();
+
+    expect(screen.getByText("Transition en erreur")).toBeInTheDocument();
+  });
 
   //  it("", () => {})
 });

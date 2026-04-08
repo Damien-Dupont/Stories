@@ -20,7 +20,11 @@ export function SceneEditPage() {
 
   const { scenes, loading: scenesLoading, error: scenesError } = useSceneList();
 
-  const { createTransition } = useCreateTransition(id ?? "");
+  const {
+    createTransition,
+    error: transitionCreationError,
+    status: transitionCreationStatus,
+  } = useCreateTransition(id ?? "");
 
   if (!id) return <p>Identifiant de scène manquant</p>;
   if (error) return <p>{error}</p>;
@@ -32,6 +36,8 @@ export function SceneEditPage() {
     <div>
       {saveStatus === "success" && <p>Sauvegarde réussie</p>}
       {saveStatus === "error" && <p>Erreur lors de la sauvegarde</p>}
+      {transitionCreationStatus === "success" && <p>Transition ajoutée</p>}
+      {transitionCreationStatus === "error" && <p>{transitionCreationError}</p>}
       <button onClick={save}>Sauvegarder</button>
       <input value={title} onChange={(e) => setTitle(e.target.value)} />
       <textarea
