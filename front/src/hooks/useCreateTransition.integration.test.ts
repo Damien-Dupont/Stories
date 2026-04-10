@@ -3,6 +3,12 @@ import { useCreateTransition } from "./useCreateTransition";
 
 // Ce test nécessite que le backend tourne sur localhost:8080
 describe("useCreateTransition (integration)", () => {
+  //   beforeEach(async () => {
+  //     await fetch(
+  //       "http://localhost:8080/transitions/scene/30e60109-5fd9-454f-91b5-c58680a2ce6d",
+  //       { method: "DELETE" },
+  //     );
+  //   });
   it("fetches a real transition from the API", async () => {
     const { result } = renderHook(() =>
       useCreateTransition("30e60109-5fd9-454f-91b5-c58680a2ce6d"),

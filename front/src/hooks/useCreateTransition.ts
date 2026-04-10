@@ -7,14 +7,19 @@ export function useCreateTransition(sceneId: string) {
   const [error, setError] = useState<string | null>(null);
 
   const createTransition = async (
-    forwardScene: string,
-    forwardLabel: string | null,
+    scene_after_id: string,
+    label_forward: string | null,
   ) => {
     try {
-      const res = await fetch(`http://localhost:8080/transitions/${sceneId}`, {
+      const res = await fetch(`http://localhost:8080/transitions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ forwardScene, forwardLabel }),
+        body: JSON.stringify({
+          scene_before_id: sceneId,
+          scene_after_id,
+          label_forward,
+          transition_order: 1,
+        }),
       });
       if (!res.ok) throw new Error("Erreur API");
       setStatus("success");

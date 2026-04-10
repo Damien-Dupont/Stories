@@ -48,13 +48,15 @@ describe("useCreateTransition", () => {
     });
 
     expect(globalThis.fetch).toHaveBeenCalledWith(
-      `http://localhost:8080/transitions/lalala`,
+      `http://localhost:8080/transitions`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          forwardScene: "bububu",
-          forwardLabel: "Aller dans la forêt",
+          scene_before_id: "lalala",
+          scene_after_id: "bububu",
+          label_forward: "Aller dans la forêt",
+          transition_order: 1,
         }),
       },
     );
