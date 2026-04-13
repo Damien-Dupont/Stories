@@ -109,7 +109,6 @@ class TransitionApiTest extends ApiTestCase
         $this->assertEquals('Continuer', $firstTransition['label_forward']);
     }
 
-
     /**
      * @test Summary of READ__it_should_get_transitions_to_next_scenes
      * @return void
@@ -229,6 +228,33 @@ class TransitionApiTest extends ApiTestCase
         $this->assertIsArray($data['data']);
         $this->assertCount(0, $data['data'], 'Should return empty array, not 404');
     }
+
+    /**
+     * @test DELETE__it_should_delete_a_transition_by_ID
+     * @return void
+     */
+    public function DELETE__it_should_delete_a_transition_by_ID(): void
+    {
+        // ARRANGE - créer une transition entre deux scènes
+        $response = $this->client->post('/transitions', [
+            'json' => [
+                'scene_before_id' => $this->persistentData['sceneOneId'],
+                'scene_after_id' => $this->persistentData['sceneTwoId'],
+                'label_forward' => 'Continuer',
+                'transition_order' => 1
+            ]
+        ]);
+        $data = json_decode($response->getBody(), true);
+        $transitionId = $data['data']['id'];
+        //ACT - détruire la transition
+        $deleteResponse = $this->client->delete('/transitions/' . $transitionId);
+
+        //ASSERT
+        $this->assertEquals(200, $deleteResponse->getStatusCode());
+        $getAfterDeleteResponse = $this->client->get('/transitions/' . $transitionId);
+        $this->assertEquals(404, $getAfterDeleteResponse->getStatusCode());
+    }
+
 }
 
 
