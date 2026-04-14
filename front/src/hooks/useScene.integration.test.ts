@@ -5,7 +5,7 @@ import { useScene } from "./useScene";
 describe("useScene (integration)", () => {
   it("fetches a real scene from the API", async () => {
     const { result } = renderHook(() =>
-      useScene("30e60109-5fd9-454f-91b5-c58680a2ce6d"),
+      useScene("1095d168-997e-427e-bf76-503a354bd834"),
     );
 
     await waitFor(() => {

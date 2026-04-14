@@ -3,20 +3,27 @@ import { useCreateTransition } from "./useCreateTransition";
 
 // Ce test nécessite que le backend tourne sur localhost:8080
 describe("useCreateTransition (integration)", () => {
-  //   beforeEach(async () => {
-  //     await fetch(
-  //       "http://localhost:8080/transitions/scene/30e60109-5fd9-454f-91b5-c58680a2ce6d",
-  //       { method: "DELETE" },
-  //     );
-  //   });
+  beforeEach(async () => {
+    const res = await fetch("http://localhost:8080/transitions");
+    const data = await res.json();
+    const transition = data.data.find(
+      (t: { scene_before_id: string; id: string }) =>
+        t.scene_before_id === "1095d168-997e-427e-bf76-503a354bd834",
+    );
+    if (transition) {
+      await fetch(`http://localhost:8080/transitions/${transition.id}`, {
+        method: "DELETE",
+      });
+    }
+  });
   it("fetches a real transition from the API", async () => {
     const { result } = renderHook(() =>
-      useCreateTransition("30e60109-5fd9-454f-91b5-c58680a2ce6d"),
+      useCreateTransition("1095d168-997e-427e-bf76-503a354bd834"),
     );
 
     await act(async () => {
       await result.current.createTransition(
-        "9fccf005-f23b-42c0-84b1-b851ca351ac1",
+        "09fb86b2-9ac4-4d4e-8a38-d29b0bbf748c",
         "VERS UN CHOIX",
       );
     });
