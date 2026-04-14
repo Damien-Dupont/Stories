@@ -89,7 +89,7 @@ $router->get('/scenes/{id}/transitions/prev', [TransitionController::class, 'pre
 $router->get('/scenes/{id}/transitions/next', [TransitionController::class, 'nextTransitions']);
 $router->post('/transitions', [TransitionController::class, 'create']);
 // $router->put('/transitions/{id}', [TransitionController::class, 'update']);
-// $router->delete('/transitions/{id}', [TransitionController::class, 'destroy']);
+$router->delete('/transitions/{id}', [TransitionController::class, 'destroy']);
 
 // Routes CRUD Episodes
 // $router->get('/episodes', [EpisodeController::class,'index']);

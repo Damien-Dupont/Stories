@@ -323,6 +323,37 @@ class TransitionController
         }
     }
 
+    /**
+     * DELETE /transitions/{id} - Supprimer une transition
+     */
+    public static function destroy(PDO $pdo, string $id): void
+    {
+        try {
+            $stmt = $pdo->prepare('DELETE FROM scene_transitions WHERE id = :id');
+            $stmt->execute(['id' => $id]);
+
+            if ($stmt->rowCount() === 0) {
+                http_response_code(404);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'transition not found'
+                ]);
+                return;
+            }
+
+            echo json_encode([
+                'status' => 'ok',
+                'message' => 'transition deleted'
+            ]);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
 
 }
 
