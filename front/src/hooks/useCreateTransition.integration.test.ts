@@ -7,13 +7,16 @@ describe("useCreateTransition (integration)", () => {
     const res = await fetch("http://localhost:8080/transitions");
     const data = await res.json();
     const transition = data.data.find(
-      (t: { scene_before_id: string; id: string }) =>
-        t.scene_before_id === "1095d168-997e-427e-bf76-503a354bd834",
+      (t: { from_scene: string; transition_id: string }) =>
+        t.from_scene === "1095d168-997e-427e-bf76-503a354bd834",
     );
     if (transition) {
-      await fetch(`http://localhost:8080/transitions/${transition.id}`, {
-        method: "DELETE",
-      });
+      await fetch(
+        `http://localhost:8080/transitions/${transition.transition_id}`,
+        {
+          method: "DELETE",
+        },
+      );
     }
   });
   it("fetches a real transition from the API", async () => {
