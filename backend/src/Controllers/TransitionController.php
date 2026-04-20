@@ -23,6 +23,53 @@ class TransitionController
     }
 
     /**
+     * Summary of getTransitionById
+     * @param PDO $pdo
+     * @param string $id
+     */
+    private static function getTransitionById(PDO $pdo, string $id): ?array
+    {
+        try {
+            $query = $pdo->prepare('SELECT scene_before_id, scene_after_id, label_forward, transition_order FROM scene_transitions WHERE id = :id');
+            $query->execute(['id' => $id]);
+            $transition = $query->fetch();
+
+            return $transition ?: null;
+
+        } catch (PDOException $e) {
+            throw $e;
+        }
+    }
+
+    /**
+     * Summary of recalculateOrdersAfter
+     * @param PDO $pdo
+     * @param string $sceneBeforeId
+     * @param int $deletedOrder
+     * @return void
+     */
+    private static function recalculateOrdersAfter(PDO $pdo, string $sceneBeforeId, int $deletedOrder): void
+    {
+        $stmt = $pdo->prepare('UPDATE scene_transitions SET transition_order = transition_order -1 WHERE scene_before_id = :scene_before_id AND transition_order > :deleted_order');
+        $stmt->execute([
+            'scene_before_id' => $sceneBeforeId,
+            'deleted_order' => $deletedOrder
+        ]);
+    }
+
+    /**
+     * Supprime une transition par ID (méthode utilitaire interne)
+     * @param PDO $pdo
+     * @param string $id
+     * @return void
+     */
+    private static function deleteTransition(PDO $pdo, string $id): void
+    {
+        $stmt = $pdo->prepare('DELETE FROM scene_transitions WHERE id = :id');
+        $stmt->execute(['id' => $id]);
+    }
+
+    /**
      * Vérifie que les deux scènes existent en base
      * @param PDO $pdo
      * @param string $sceneBeforeId
@@ -365,10 +412,9 @@ class TransitionController
     public static function destroy(PDO $pdo, string $id): void
     {
         try {
-            $stmt = $pdo->prepare('DELETE FROM scene_transitions WHERE id = :id');
-            $stmt->execute(['id' => $id]);
+            $transition = self::getTransitionById($pdo, $id);
 
-            if ($stmt->rowCount() === 0) {
+            if (!$transition) {
                 http_response_code(404);
                 echo json_encode([
                     'status' => 'error',
@@ -376,6 +422,10 @@ class TransitionController
                 ]);
                 return;
             }
+
+            self::deleteTransition($pdo, $id);
+
+            self::recalculateOrdersAfter($pdo, $transition['scene_before_id'], $transition['transition_order']);
 
             echo json_encode([
                 'status' => 'ok',
