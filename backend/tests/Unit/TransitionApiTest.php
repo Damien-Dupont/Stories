@@ -10,6 +10,7 @@ class TransitionApiTest extends ApiTestCase
         $this->persistentData['sceneOneId'] = $this->createTestScene(['title' => 'Choix']);
         $this->persistentData['sceneTwoId'] = $this->createTestScene(['title' => 'Par là']);
         $this->persistentData['sceneThreeId'] = $this->createTestScene(['title' => 'Par ici']);
+        $this->persistentData['sceneFourId'] = $this->createTestScene(['title' => 'là bas']);
     }
 
     /**
@@ -311,12 +312,48 @@ class TransitionApiTest extends ApiTestCase
         $this->assertEquals(2, $data['data']['transition_order']);
     }
 
+    /**
+     * @test
+     */
+    public function DELETE__it_should_recalculate_transitions_orders_after_deletion(): void
+    {
+        // ARRANGE : create transitions
+        $transition1 = $this->client->post('/transitions', [
+            'json' => [
+                'scene_before_id' => $this->persistentData['sceneOneId'],
+                'scene_after_id' => $this->persistentData['sceneTwoId'],
+                'transition_order' => 1
+            ]
+        ]);
+        $dataTransition1 = json_decode($transition1->getBody(), true);
+        $transition2 = $this->client->post('/transitions', [
+            'json' => [
+                'scene_before_id' => $this->persistentData['sceneOneId'],
+                'scene_after_id' => $this->persistentData['sceneThreeId'],
+                'transition_order' => 2
+            ]
+        ]);
+        $dataTransition2 = json_decode($transition2->getBody(), true);
+        $transition3 = $this->client->post('/transitions', [
+            'json' => [
+                'scene_before_id' => $this->persistentData['sceneOneId'],
+                'scene_after_id' => $this->persistentData['sceneFourId'],
+                'transition_order' => 3
+            ]
+        ]);
+        $dataTransition3 = json_decode($transition3->getBody(), true);
+
+        // ACT
+        $this->client->delete('/transitions/' . $dataTransition2['data']['id']);
+
+        //ASSERT
+        $get1 = $this->client->get('/transitions/' . $dataTransition1['data']['id']);
+        $get3 = $this->client->get('/transitions/' . $dataTransition3['data']['id']);
+        $data1 = json_decode($get1->getBody(), true);
+        $data3 = json_decode($get3->getBody(), true);
+
+        $this->assertEquals(1, $data1['data']['transition_order']);
+        $this->assertEquals(2, $data3['data']['transition_order']);
+    }
+
 }
-
-
-
-// TODO: GET_CREATE__it_should_return_404_if_one_scene_does_not_exist
-// TODO: READ__it_should_return_404_if_one_transition_does_not_exist
-// GET /transitions
-// GET /transitions/{id}
-// GET /scenes/{id}/transitions
