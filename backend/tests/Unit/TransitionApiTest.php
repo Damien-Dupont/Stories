@@ -302,12 +302,13 @@ class TransitionApiTest extends ApiTestCase
 
         // ACT - update la transition
         $updateResponse = $this->client->put('/transitions/' . $transitionId, ['json' => $updatedJson]);
+        $this->assertEquals(200, $updateResponse->getStatusCode());
 
         //ASSERT
-        $updateData = json_decode($updateResponse->getBody(), true);
-        $this->assertEquals(200, $updateResponse->getStatusCode());
-        $this->assertEquals('SecondLabel', $updateData['label_forward']);
-        $this->assertEquals(2, $updateData['transition_order']);
+        $getResponse = $this->client->get('/transitions/' . $transitionId);
+        $data = json_decode($getResponse->getBody(), true);
+        $this->assertEquals('SecondLabel', $data['data']['label_forward']);
+        $this->assertEquals(2, $data['data']['transition_order']);
     }
 
 }
