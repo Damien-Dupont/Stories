@@ -9,7 +9,6 @@ class ChapterApiTest extends ApiTestCase
 
     /**
      * @test
-     * Teste la création d'un chapitre
      */
     public function CREATE__it_should_create_a_chapter()
     {
@@ -55,7 +54,6 @@ class ChapterApiTest extends ApiTestCase
 
     /**
      * @test
-     * Teste le rejet de création d'un chapitre sans work_id
      */
     public function CREATE__it_should_reject_chapter_without_work_id()
     {
@@ -78,7 +76,6 @@ class ChapterApiTest extends ApiTestCase
 
     /**
      * @test
-     * Teste le la valeur par défaut de order_hint à la création d'un chapitre
      */
     public function CREATE__it_should_set_order_hint_to_zero_by_default()
     {
@@ -108,11 +105,10 @@ class ChapterApiTest extends ApiTestCase
 
     /**
      * @test
-     * Teste la récupération d'un chapitre unique via l'API
      */
     public function READ__it_should_get_single_chapter()
     {
-        // 1. ARRANGE : Créer un chapitre d'abord (il faut quelque chose à récupérer)
+        // ARRANGE
         $chapterToGetTitle = 'Mon chapitre à récupérer';
 
         $chapterToGetID = $this->createTestChapter([
@@ -121,10 +117,10 @@ class ChapterApiTest extends ApiTestCase
             'order_hint' => 5
         ]);
 
-        // 2. ACT : Récupérer le chapitre via GET
+        // ACT
         $response = $this->client->get('/chapters/' . $chapterToGetID);
 
-        // 3. ASSERT : Vérifier la réponse
+        // ASSERT
         $this->assertEquals(200, $response->getStatusCode());
 
         $data = json_decode($response->getBody(), true);
@@ -134,14 +130,11 @@ class ChapterApiTest extends ApiTestCase
         $this->assertEquals($chapterToGetTitle, $data['data']['title']);
         $this->assertEquals(5, $data['data']['number']);
         $this->assertEquals($this->persistentData['workId'], $data['data']['work_id']);
-
-        // Vérifier que le titre de l'épisode est inclus (grâce au LEFT JOIN)
         $this->assertEquals(null, $data['data']['episode_title']);
     }
 
     /**
      * @test
-     * Teste le retour d'erreur 404 d'un GET sur id inconnu
      */
     public function READ__it_should_return_404_when_chapter_not_found()
     {
@@ -158,7 +151,6 @@ class ChapterApiTest extends ApiTestCase
 
     /**
      * @test
-     * Teste le listing de tous les chapitres d'un épisode, dans l'ordre
      */
     public function READ__it_should_list_all_chapters_ordered_by_global_order()
     {
@@ -208,7 +200,6 @@ class ChapterApiTest extends ApiTestCase
 
     /**
      * @test
-     * Teste la mise à jour du titre d'un chapitre
      */
     public function UPDATE__it_should_update_chapter_title()
     {
@@ -241,7 +232,6 @@ class ChapterApiTest extends ApiTestCase
 
     /**
      * @test
-     * Teste le retour d'erreur 404 d'un UPDATE sur ID inconnu
      */
     public function UPDATE__it_should_return_404_when_updating_non_existent_scene()
     {
@@ -282,7 +272,6 @@ class ChapterApiTest extends ApiTestCase
 
     /**
      * @test
-     * Teste le retour d'erreur à la suppression d'un chapitre inexistant
      */
     public function DELETE__it_should_return_404_when_deleting_non_existent_chapter()
     {

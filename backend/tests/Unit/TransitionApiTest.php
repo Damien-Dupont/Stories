@@ -12,11 +12,8 @@ class TransitionApiTest extends ApiTestCase
         $this->persistentData['sceneThreeId'] = $this->createTestScene(['title' => 'Par ici']);
     }
 
-    // CRUD TESTS :: CREATION
-
     /**
-     * @test Summary of CREATE__it_should_create_a_transition_between_two_scenes
-     * @return void
+     * @test
      */
     public function CREATE__it_should_create_a_transition_between_two_scenes(): void
     {
@@ -56,8 +53,35 @@ class TransitionApiTest extends ApiTestCase
     }
 
     /**
-     * @test Summary of READ__it_should_get_all_transitions
-     * @return void
+     * @test
+     */
+    public function READ__it_should_get_a_single_transition_by_ID(): void
+    {
+        // ARRANGE - Créer une transition
+        $transitionToCreate = [
+            'scene_before_id' => $this->persistentData['sceneOneId'],
+            'scene_after_id' => $this->persistentData['sceneTwoId'],
+            'label_forward' => 'test read by id',
+            'transition_order' => 100
+        ];
+        $response = $this->client->post('/transitions', ['json' => $transitionToCreate]);
+        $dataPost = json_decode($response->getBody(), true);
+        $responseID = $dataPost['data']['id'];
+
+        //ACT
+        $getResponse = $this->client->get('/transitions/' . $responseID);
+
+        // ASSERT
+        $this->assertEquals(200, $getResponse->getStatusCode());
+
+        $data = json_decode($getResponse->getBody(), true);
+        $this->assertEquals('ok', $data['status']);
+
+        $this->assertEquals('test read by id', $data['data']['label_forward']);
+    }
+
+    /**
+     * @test
      */
     public function READ__it_should_get_all_transitions(): void
     {
@@ -110,8 +134,7 @@ class TransitionApiTest extends ApiTestCase
     }
 
     /**
-     * @test Summary of READ__it_should_get_transitions_to_next_scenes
-     * @return void
+     * @test
      */
     public function READ__it_should_get_transitions_to_next_scenes(): void
     {
@@ -160,8 +183,7 @@ class TransitionApiTest extends ApiTestCase
     }
 
     /**
-     * @test Summary of READ__it_should_get_transitions_to_previous_scenes
-     * @return void
+     * @test
      */
     public function READ__it_should_get_transitions_to_previous_scenes(): void
     {
@@ -209,8 +231,7 @@ class TransitionApiTest extends ApiTestCase
     }
 
     /**
-     * @test Summary of READ__it_should_return_empty_array_when_no_next_transitions
-     * @return void
+     * @test
      */
     public function READ__it_should_return_empty_array_when_no_next_transitions(): void
     {
@@ -230,8 +251,7 @@ class TransitionApiTest extends ApiTestCase
     }
 
     /**
-     * @test DELETE__it_should_delete_a_transition_by_ID
-     * @return void
+     * @test
      */
     public function DELETE__it_should_delete_a_transition_by_ID(): void
     {
@@ -246,6 +266,7 @@ class TransitionApiTest extends ApiTestCase
         ]);
         $data = json_decode($response->getBody(), true);
         $transitionId = $data['data']['id'];
+
         //ACT - détruire la transition
         $deleteResponse = $this->client->delete('/transitions/' . $transitionId);
 
@@ -253,6 +274,40 @@ class TransitionApiTest extends ApiTestCase
         $this->assertEquals(200, $deleteResponse->getStatusCode());
         $getAfterDeleteResponse = $this->client->get('/transitions/' . $transitionId);
         $this->assertEquals(404, $getAfterDeleteResponse->getStatusCode());
+    }
+
+    /**
+     * @test
+     */
+    public function UPDATE__it_should_update_a_transition_by_ID(): void
+    {
+        // ARRANGE - créer une transition entre deux scènes
+        $response = $this->client->post('/transitions', [
+            'json' => [
+                'scene_before_id' => $this->persistentData['sceneOneId'],
+                'scene_after_id' => $this->persistentData['sceneTwoId'],
+                'label_forward' => 'FirstLabel',
+                'transition_order' => 1
+            ]
+        ]);
+        $data = json_decode($response->getBody(), true);
+        $transitionId = $data['data']['id'];
+
+        $updatedJson = [
+            'scene_before_id' => $this->persistentData['sceneOneId'],
+            'scene_after_id' => $this->persistentData['sceneTwoId'],
+            'label_forward' => 'SecondLabel',
+            'transition_order' => 2
+        ];
+
+        // ACT - update la transition
+        $updateResponse = $this->client->put('/transitions/' . $transitionId, ['json' => $updatedJson]);
+
+        //ASSERT
+        $updateData = json_decode($updateResponse->getBody(), true);
+        $this->assertEquals(200, $updateResponse->getStatusCode());
+        $this->assertEquals('SecondLabel', $updateData['label_forward']);
+        $this->assertEquals(2, $updateData['transition_order']);
     }
 
 }

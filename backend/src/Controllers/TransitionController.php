@@ -112,6 +112,42 @@ class TransitionController
      */
     public static function show(PDO $pdo, string $id): void
     {
+        try {
+            $stmt = $pdo->prepare('
+            SELECT
+            st.id as transition_id,
+            st.scene_before_id as from_scene,
+            st.scene_after_id as to_scene,
+            st.label_forward,
+            st.transition_order,
+            st.created_at
+            FROM scene_transitions st
+            WHERE st.id = :id
+            ');
+
+            $stmt->execute(['id' => $id]);
+            $transition = $stmt->fetch();
+
+            if (!$transition) {
+                http_response_code(404);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Transition not found'
+                ]);
+                return;
+            }
+
+            echo json_encode([
+                'status' => 'ok',
+                'data' => $transition
+            ]);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 
     /**
@@ -354,6 +390,56 @@ class TransitionController
         }
     }
 
+    /**
+     * PUT /transitions/{id}
+     */
+    public static function update(PDO $pdo, string $id): void
+    {
+        try {
+            $input = json_decode(file_get_contents('php://input'), true);
+            $fields = [];
+            $params = ['id' => $id];
+            $allowedFields = ['label_forward', 'transition_order'];
+
+            foreach ($allowedFields as $field) {
+                if (isset($input[$field])) {
+                    $fields[] = "$field = :$field";
+                    $params[$field] = $input[$field];
+                }
+            }
+            if (empty($fields)) {
+                http_response_code(400);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'No fields to update'
+                ]);
+                return;
+            }
+            $sql = 'UPDATE scene_transitions SET ' . implode(',', $fields) . ' WHERE id = :id';
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+
+            if ($stmt->rowCount() === 0) {
+                http_response_code(404);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Transition not found'
+                ]);
+                return;
+            }
+
+            echo json_encode([
+                'status' => 'ok',
+                'message' => 'Transition updated'
+            ]);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
 
 }
 
