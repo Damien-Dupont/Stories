@@ -2,12 +2,25 @@
 
 ## Prérequis
 
-- macOS 13+ (Ventura)
-- Homebrew installé
+### Commun (tous OS)
+
 - Docker Desktop 4.48+
-- PHP 8.4+
 - Node 20+
-- Composer
+- npm 10+
+
+### macOS
+
+- macOS 13+ (Ventura)
+- Homebrew (pour installer Node si besoin : `brew install node`)
+
+### Windows
+
+- Windows 10/11
+- Docker Desktop pour Windows (avec WSL2 activé)
+- Node.js installé depuis <https://nodejs.org/> (LTS 20+)
+- PowerShell ou Windows Terminal
+
+> **Note :** PHP et Composer ne sont pas nécessaires sur la machine hôte. Ils tournent dans le container Docker.
 
 ---
 
@@ -16,24 +29,22 @@
 ### Vérifier les versions installées
 
 ```bash
-php -v          # Doit afficher 8.4.x
 node -v         # Doit afficher v20.x
 npm -v          # Doit afficher 10.x
-composer -v     # Doit afficher 2.9.x
 docker -v       # Doit afficher 28.x
 ```
 
-### Si manquantes, installer via Homebrew
+### macOS (via Homebrew)
 
 ```bash
-brew install php node composer
+brew install node
 ```
 
-### Installer Docker Desktop
+### Windows
 
-- Télécharger depuis <https://www.docker.com/products/docker-desktop/>
-- Version pour **Mac Intel** (macOS 13)
-- Lancer l'application et attendre "Engine running"
+- Télécharger et installer Node.js depuis <https://nodejs.org/> (LTS)
+- Télécharger Docker Desktop depuis <https://www.docker.com/products/docker-desktop/>
+- Redémarrer le terminal après installation
 
 ---
 
@@ -43,19 +54,37 @@ brew install php node composer
 
 ```TEXT
 story-app/
-├── backend/          # Code PHP
-├── frontend/         # Code React
-├── database/         # Scripts SQL
-│   └── init.sql     # Schéma de base de données
+├── backend/          # Code PHP (API REST)
+├── front/            # Code React (TypeScript + Vite)
+├── database/         # Scripts SQL + migrations
+│   ├── init.sql     # Schéma initial
+│   └── migrations/  # Fichiers de migration
 ├── nginx/           # Config serveur web
 │   └── default.conf
-├── db_data/         # Données PostgreSQL (généré)
-├── .env             # Variables d'environnement
+├── db_data/         # Données PostgreSQL (généré, gitignored)
+├── .env             # Variables d'environnement (gitignored)
+├── .env.example     # Template pour .env (versionné)
 ├── docker-compose.yml
 └── SETUP.md
 ```
 
 ### Créer le fichier `.env`
+
+Copier le template et ajuster si besoin :
+
+**macOS / Linux :**
+
+```bash
+cp .env.example .env
+```
+
+**Windows (PowerShell) :**
+
+```powershell
+copy .env.example .env
+```
+
+Contenu par défaut (`.env.example`) :
 
 ```env
 # Environnement
@@ -102,18 +131,22 @@ docker compose ps
 
 ---
 
-## 4. Vérifier la base de données
+## 4. Appliquer les migrations
 
-### Se connecter à PostgreSQL
+```bash
+docker exec -it story_php php /var/www/scripts/migrate.php up
+```
+
+### Vérifier la base de données
 
 ```bash
 docker exec -it story_postgres psql -U story_user -d story_app
 ```
 
-### Lister les tables
-
 ```sql
-\dt
+\dt    -- Lister les tables
+\d works  -- Voir la structure d'une table
+\q     -- Quitter
 ```
 
 **Tables créées :**
@@ -123,22 +156,39 @@ docker exec -it story_postgres psql -U story_user -d story_app
 - `chapters` (chapitres/actes)
 - `scenes` (scènes)
 - `scene_transitions` (liens entre scènes)
+- `schema_migrations` (suivi des migrations)
 
-### Voir la structure d'une table
+---
 
-```sql
-\d works
+## 5. Lancer le frontend
+
+```bash
+cd front
+npm install
+npm run dev
 ```
 
-### Quitter PostgreSQL
+Le frontend est accessible sur `http://localhost:5173` (port par défaut de Vite).
 
-```sql
-\q
+L'API backend est sur `http://localhost:8080`.
+
+---
+
+## 6. Lancer les tests
+
+### Tests backend (PHPUnit)
+
+```bash
+# Créer la base de test (une seule fois)
+docker exec -it story_postgres psql -U story_user -d postgres -c "CREATE DATABASE story_app_test OWNER story_user;"
+
+# Lancer les tests
+docker exec -it story_php vendor/bin/phpunit
 ```
 
 ---
 
-## 5. Commandes utiles
+## 7. Commandes utiles
 
 ### Arrêter les containers
 
@@ -170,46 +220,97 @@ docker compose logs -f nginx
 # Arrêter et supprimer les données
 docker compose down -v
 
+# Supprimer les données persistantes
+# macOS/Linux :
+rm -rf db_data
+# Windows :
+Remove-Item -Recurse -Force db_data
+
 # Relancer (réexécute init.sql)
 docker compose up -d
+
+# Réappliquer les migrations
+docker exec -it story_php php /var/www/scripts/migrate.php up
+```
+
+### Migrations
+
+```bash
+# Voir l'état
+docker exec -it story_php php /var/www/scripts/migrate.php status
+
+# Appliquer les migrations en attente
+docker exec -it story_php php /var/www/scripts/migrate.php up
+
+# Vérifier l'intégrité
+docker exec -it story_php php /var/www/scripts/migrate.php verify
 ```
 
 ---
 
-## 6. Troubleshooting
+## 8. Troubleshooting
 
-### Erreur "port 5432 already in use"
+### Erreur "port 5432/5433 already in use"
 
-PostgreSQL local tourne déjà. Solutions :
+Un autre PostgreSQL tourne déjà.
 
-**Option 1 :** Arrêter PostgreSQL local
+**macOS :**
 
 ```bash
 brew services stop postgresql
 ```
 
-**Option 2 :** Changer le port dans `.env`
+**Windows :**
 
-```env
-DB_PORT=5433
+```powershell
+# Vérifier quel processus utilise le port
+netstat -ano | findstr 5433
+# Arrêter le service PostgreSQL si installé localement
+Stop-Service postgresql*
 ```
 
-### Docker ne démarre pas
+Ou changer le port dans `.env` (`DB_PORT=5434` par exemple).
+
+### Container postgres "exited (1)" au démarrage
+
+Le plus souvent causé par un dossier `db_data/` corrompu (init partielle). Supprimer et relancer :
+
+```bash
+docker compose down -v
+# macOS/Linux :
+rm -rf db_data
+# Windows :
+Remove-Item -Recurse -Force db_data
+
+docker compose up -d
+```
+
+### Docker ne démarre pas (macOS)
 
 1. Quitter Docker Desktop (Cmd+Q)
 2. Attendre 10 secondes
 3. Relancer `/Applications/Docker.app`
 4. Attendre "Engine running"
 
-### Docker command not found dans le terminal
+### Docker ne démarre pas (Windows)
+
+1. Vérifier que WSL2 est activé : `wsl --status`
+2. Si nécessaire : `wsl --install` puis redémarrer
+3. Relancer Docker Desktop
+
+### Problèmes de fins de ligne (Windows)
+
+Si les scripts PHP ou SQL ne fonctionnent pas dans les containers Linux, configurer git pour éviter la conversion CRLF :
 
 ```bash
-# Ajouter Docker au PATH
-export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
+git config core.autocrlf input
+```
 
-# Ou de manière permanente dans ~/.zshrc
-echo 'export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"' >> ~/.zshrc
-source ~/.zshrc
+Puis re-cloner ou réinitialiser les fichiers :
+
+```bash
+git rm --cached -r .
+git reset --hard
 ```
 
 ### Les tables ne sont pas créées
@@ -223,7 +324,7 @@ docker compose up -d
 
 ---
 
-## 7. Architecture de la base de données
+## 9. Architecture de la base de données
 
 ### Hiérarchie du contenu
 
@@ -263,45 +364,32 @@ Le système supporte des scènes hors-chapitre :
   - 200+ : Chapitres (incréments de 100)
   - 9000+ : Épilogue, postface
 
-**Emoji et image :**
-
-- `emoji` : Emoji illustrant la scène (🌙, ⚔️, 🏰...)
-- `image_url` : URL de l'image header
-
-**Exemple de prologue :**
-
-```json
-{
-  "chapter_id": null,
-  "scene_type": "special",
-  "custom_type_label": "Prologue",
-  "title": "Les origines",
-  "emoji": "🌅",
-  "sort_order": 100,
-  "content_markdown": "# Prologue\n\nIl était une fois..."
-}
-```
-
 ---
 
-## 8. Backend PHP - API REST
+## 10. Backend PHP - API REST
 
 ### Structure backend
 
 ```TEXT
 backend/
-├── Dockerfile                    # Image PHP avec extension PostgreSQL
+├── Dockerfile
 ├── config/
-│   └── database.php             # Connexion PDO
+│   └── database.php
 ├── src/
-│   ├── Router.php               # Gestionnaire de routes
+│   ├── Router.php
 │   └── Controllers/
-│       └── SceneController.php  # CRUD Scènes
+│       ├── SceneController.php
+│       ├── ChapterController.php
+│       ├── WorkController.php
+│       └── TransitionController.php
+├── scripts/
+│   └── migrate.php
+├── tests/
 └── public/
-    └── index.php                # Point d'entrée API
+    └── index.php
 ```
 
-### Rebuild du container PHP (si modifié)
+### Rebuild du container PHP (si Dockerfile modifié)
 
 ```bash
 docker compose build --no-cache php
@@ -310,117 +398,38 @@ docker compose up -d
 
 ### Routes disponibles
 
-#### Base
+**Base :**
 
 - `GET /` - Statut de l'API
 - `GET /health` - Test connexion PostgreSQL
 - `GET /works` - Liste toutes les œuvres
 
-#### Scènes (CRUD complet)
+**Scènes (CRUD) :**
 
 - `GET /scenes` - Liste toutes les scènes
 - `GET /scenes/{id}` - Détails d'une scène
-- `POST /scenes` - Créer une nouvelle scène
+- `POST /scenes` - Créer une scène
 - `PUT /scenes/{id}` - Modifier une scène
 - `DELETE /scenes/{id}` - Supprimer une scène
 - `GET /chapters/{id}/scenes` - Scènes d'un chapitre
 
-### Exemples d'utilisation
-
-#### Créer un chapitre (prérequis)
-
-```bash
-docker exec -it story_postgres psql -U story_user -d story_app -c "
-INSERT INTO chapters (work_id, title, number, order_hint)
-VALUES ('00000000-0000-0000-0000-000000000001', 'Chapitre 1', 1, 1)
-RETURNING id;
-"
-```
-
-#### Créer une scène
-
-```bash
-curl -X POST http://localhost:8080/scenes \
-  -H "Content-Type: application/json" \
-  -d '{
-    "chapter_id": "UUID_DU_CHAPITRE",
-    "title": "Ma première scène",
-    "content_markdown": "# Titre\n\nContenu en **Markdown**.",
-    "order_hint": 1
-  }'
-```
-
-#### Lister les scènes
-
-```bash
-curl http://localhost:8080/scenes
-```
-
-#### Récupérer une scène
-
-```bash
-curl http://localhost:8080/scenes/UUID_DE_LA_SCENE
-```
-
-#### Modifier une scène
-
-```bash
-curl -X PUT http://localhost:8080/scenes/UUID_DE_LA_SCENE \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Nouveau titre"}'
-```
-
-#### Supprimer une scène
-
-```bash
-curl -X DELETE http://localhost:8080/scenes/UUID_DE_LA_SCENE
-```
-
 ---
 
-## 9. Migrations de base de données
+## 11. Migrations de base de données
 
-1. **Gestion automatique de `schema_migrations`**
+### Principes
 
-   - Plus besoin d'INSERT manuel dans les fichiers SQL
-   - Checksum MD5 calculé automatiquement
-   - Commande `verify` pour détecter les modifications
-
-2. **Affichage clair du status**
-
-   - `Appliquées` : Migrations dans la BDD
-   - `En attente` : Migrations à appliquer
-   - `Total fichiers` : Fichiers SQL trouvés
-
-3. **Fichiers ignorés**
-   - `template.sql` et `template.sql.example` exclus automatiquement
-   - Seuls les fichiers au format `YYYYMMDD_HHmm_*.sql` sont pris en compte
-
-**Commandes disponibles :**
-
-```bash
-# Voir l'état
-docker exec -it story_php php /var/www/scripts/migrate.php status
-
-# Appliquer les migrations en attente
-docker exec -it story_php php /var/www/scripts/migrate.php up
-
-# Vérifier l'intégrité
-docker exec -it story_php php /var/www/scripts/migrate.php verify
-```
-
-### Structure d'une migration
-
-Les fichiers sont dans `database/migrations/` avec la nomenclature :
-
-- `YYYYMMDD_HHmm_description.sql`
-- Exemple : `20251117_1145_add_special_scenes.sql`
+- `migrate.php` gère les transactions (BEGIN/COMMIT) et l'enregistrement dans `schema_migrations`
+- Les fichiers SQL ne doivent **pas** contenir de `BEGIN;`, `COMMIT;` ni d'`INSERT INTO schema_migrations`
+- Le script nettoie automatiquement ces éléments s'ils sont présents (rétrocompatibilité)
 
 ### Créer une nouvelle migration
 
-1. Créer le fichier dans `database/migrations/`
-2. Utiliser le template avec `BEGIN/COMMIT` et `INSERT INTO schema_migrations`
-3. Appliquer avec `migrate.php up`
+1. Créer le fichier dans `database/migrations/` au format `YYYYMMDD_HHmm_description.sql`
+2. Écrire uniquement les commandes SQL (ALTER, CREATE, etc.)
+3. Appliquer avec `docker exec -it story_php php /var/www/scripts/migrate.php up`
+
+---
 
 ## Support
 

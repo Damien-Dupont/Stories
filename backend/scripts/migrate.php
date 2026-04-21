@@ -155,12 +155,16 @@ class MigrationManager
      */
     private function cleanOldMigrationInserts(string $sql): string
     {
-        // Supprimer les lignes INSERT INTO schema_migrations
-        $sql = preg_replace(
-            '/INSERT\s+INTO\s+schema_migrations\s*\([^)]+\)\s*VALUES\s*\([^)]+\)\s*;/is',
-            '-- [Nettoyé] INSERT INTO schema_migrations (géré par migrate.php)',
-            $sql
-        );
+       // Supprimer les INSERT INTO schema_migrations (toutes variantes)
+    $sql = preg_replace(
+        '/INSERT\s+INTO\s+schema_migrations\s[\s\S]*?;\s*/i',
+        '',
+        $sql
+    );
+
+    // Supprimer BEGIN/COMMIT (géré par migrate.php via PDO)
+    $sql = preg_replace('/^\s*BEGIN\s*;\s*$/mi', '', $sql);
+    $sql = preg_replace('/^\s*COMMIT\s*;\s*$/mi', '', $sql);
 
         return $sql;
     }

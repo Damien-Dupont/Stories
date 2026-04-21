@@ -5,7 +5,6 @@
 -- Author: Story App Team
 -- Date: 2024-12-11
 
-BEGIN;
 
 -- ======================================
 -- 1. REFACTOR TABLE scenes
@@ -50,7 +49,6 @@ VALUES (
     '20251211_1800_refactor_ordering_and_labels.sql'
 );
 
-COMMIT;
 
 -- ======================================
 -- ROLLBACK (optionnel, commenté)
