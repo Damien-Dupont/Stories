@@ -293,6 +293,12 @@ class TransitionController
         }
     }
 
+    /**
+     * Summary of nextTransitions
+     * @param PDO $pdo
+     * @param string $sceneId
+     * @return void
+     */
     public static function nextTransitions(PDO $pdo, string $sceneId): void
     {
         try {
@@ -350,6 +356,12 @@ class TransitionController
         }
     }
 
+    /**
+     * Summary of previousTransitions
+     * @param PDO $pdo
+     * @param string $sceneId
+     * @return void
+     */
     public static function previousTransitions(PDO $pdo, string $sceneId): void
     {
         try {
@@ -492,7 +504,3 @@ class TransitionController
     }
 
 }
-
-
-
-// TODO: renommer scene_before_id et scene_after_id en from/to ou origin/destination
