@@ -104,12 +104,7 @@ class TransitionController
         $result = $stmt->fetch();
 
         if ($result['count'] != 2) {
-            http_response_code(404);
-            echo json_encode([
-                'status' => 'error',
-                'message' => 'One or both scenes not found'
-            ]);
-            // Retourner false pour que le contrôleur puisse faire un return
+            JsonResponse::error('One or both scenes not found', 404);
             return false;
         }
 
@@ -138,16 +133,12 @@ class TransitionController
 
             $transitions = $stmt->fetchAll();
 
-            echo json_encode([
-                'status' => 'ok',
-                'data' => $transitions
-            ]);
+            JsonResponse::success($transitions);
+
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+
+            JsonResponse::error($e->getMessage(), 500);
+
         }
     }
 
@@ -176,24 +167,14 @@ class TransitionController
             $transition = $stmt->fetch();
 
             if (!$transition) {
-                http_response_code(404);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Transition not found'
-                ]);
+                JsonResponse::error('Transition not found', 404);
                 return;
             }
 
-            echo json_encode([
-                'status' => 'ok',
-                'data' => $transition
-            ]);
+            JsonResponse::success($transition);
+
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            JsonResponse::error($e->getMessage(), 500);
         }
     }
 
@@ -209,21 +190,14 @@ class TransitionController
 
             // Scene_id's must be set
             if (!isset($input['scene_before_id'], $input['scene_after_id'])) {
-                http_response_code(400);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Missing required fields: scene_id'
-                ]);
+                JsonResponse::error('Missing required fields: scene_id', 400);
+
                 return;
             }
 
             // Forbid a transition between a scene and itself
             if ($input['scene_before_id'] === $input['scene_after_id']) {
-                http_response_code(400);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'A scene cannot follow itself: timeloop forbidden'
-                ]);
+                JsonResponse::error('A scene cannot follow itself: timeloop forbidden', 400);
                 return;
             }
 
@@ -260,36 +234,19 @@ class TransitionController
             ]);
             $result = $stmt->fetch();
 
-            http_response_code(201);
-            echo json_encode([
-                'status' => 'ok',
-                'message' => 'Transition created',
-                'data' => [
-                    'id' => $result['id'],
-                    'created_at' => $result['created_at']
-                ]
+            JsonResponse::created('Transition created', [
+                'id' => $result['id'],
+                'created_at' => $result['created_at']
             ]);
 
         } catch (PDOException $e) {
             if (strpos($e->getMessage(), 'duplicate key') !== false) {
-                http_response_code(409);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'This transition already exists'
-                ]);
+                JsonResponse::error('This transition already exists', 409);
             } else {
-                http_response_code(500);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Database error:' . $e->getMessage()
-                ]);
+                JsonResponse::error('Database error' . $e->getMessage(), 500);
             }
         } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => 'Unexpected error' . $e->getMessage()
-            ]);
+            JsonResponse::error('Unexpected error' . $e->getMessage(), 500);
         }
     }
 
@@ -304,11 +261,7 @@ class TransitionController
         try {
             // Validation : UUID format
             if (!preg_match('/^[0-9a-f-]{36}$/i', $sceneId)) {
-                http_response_code(400);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Invalid scene ID format'
-                ]);
+                JsonResponse::error('Invalid scene ID format', 400);
                 return;
             }
 
@@ -316,11 +269,7 @@ class TransitionController
             $checkScene = $pdo->prepare('SELECT id FROM scenes WHERE id = :id');
             $checkScene->execute(['id' => $sceneId]);
             if (!$checkScene->fetch()) {
-                http_response_code(404);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Scene not found'
-                ]);
+                JsonResponse::error('Scene not found', 404);
                 return;
             }
 
@@ -341,18 +290,10 @@ class TransitionController
             $stmt->execute(['scene_id' => $sceneId]);
             $nextTransitions = $stmt->fetchAll();
 
-            //  http_response_code(200);
-            echo json_encode([
-                'status' => 'ok',
-                'data' => $nextTransitions
-            ]);
+            JsonResponse::success($nextTransitions);
 
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            JsonResponse::error($e->getMessage(), 500);
         }
     }
 
@@ -367,11 +308,7 @@ class TransitionController
         try {
             // Validation : UUID format
             if (!preg_match('/^[0-9a-f-]{36}$/i', $sceneId)) {
-                http_response_code(400);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Invalid scene ID format'
-                ]);
+                JsonResponse::error('Invalid scene ID format', 400);
                 return;
             }
 
@@ -379,11 +316,7 @@ class TransitionController
             $checkScene = $pdo->prepare('SELECT id FROM scenes WHERE id = :id');
             $checkScene->execute(['id' => $sceneId]);
             if (!$checkScene->fetch()) {
-                http_response_code(404);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Scene not found'
-                ]);
+                JsonResponse::error('Scene not found', 404);
                 return;
             }
 
@@ -404,17 +337,10 @@ class TransitionController
             $stmt->execute(['scene_id' => $sceneId]);
             $prevTransitions = $stmt->fetchAll();
 
-            echo json_encode([
-                'status' => 'ok',
-                'data' => $prevTransitions
-            ]);
+            JsonResponse::success($prevTransitions);
 
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            JsonResponse::error($e->getMessage(), 500);
         }
     }
 
@@ -427,11 +353,7 @@ class TransitionController
             $transition = self::getTransitionById($pdo, $id);
 
             if (!$transition) {
-                http_response_code(404);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'transition not found'
-                ]);
+                JsonResponse::error('Transition not found', 404);
                 return;
             }
 
@@ -439,16 +361,10 @@ class TransitionController
 
             self::recalculateOrdersAfter($pdo, $transition['scene_before_id'], $transition['transition_order']);
 
-            echo json_encode([
-                'status' => 'ok',
-                'message' => 'transition deleted'
-            ]);
+            JsonResponse::success(null, 'Transition deleted');
+
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            JsonResponse::error($e->getMessage(), 500);
         }
     }
 
@@ -470,11 +386,7 @@ class TransitionController
                 }
             }
             if (empty($fields)) {
-                http_response_code(400);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'No fields to update'
-                ]);
+                JsonResponse::error('No fields to update', 400);
                 return;
             }
             $sql = 'UPDATE scene_transitions SET ' . implode(',', $fields) . ' WHERE id = :id';
@@ -482,24 +394,14 @@ class TransitionController
             $stmt->execute($params);
 
             if ($stmt->rowCount() === 0) {
-                http_response_code(404);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Transition not found'
-                ]);
+                JsonResponse::error('Transition not found', 404);
                 return;
             }
 
-            echo json_encode([
-                'status' => 'ok',
-                'message' => 'Transition updated'
-            ]);
+            JsonResponse::success(null, 'Transition updated');
+
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            JsonResponse::error($e->getMessage(), 500);
         }
     }
 

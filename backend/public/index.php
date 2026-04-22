@@ -17,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // Chargement des classes
 require_once __DIR__ . '/../src/Router.php';
+require_once __DIR__ . '/../src/helpers/Response.php';
 require_once __DIR__ . '/../src/Controllers/SceneController.php';
 require_once __DIR__ . '/../src/Controllers/ChapterController.php';
 //require_once __DIR__ . '/../src/Controllers/EpisodeController.php';
