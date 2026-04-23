@@ -80,7 +80,7 @@ class SceneController
             // Validation minimale
             if (!isset($input['content_markdown'])) {
 
-                JsonResponse::error('Missing required field: content_markdown', 404);
+                JsonResponse::error('Missing required field: content_markdown', 400);
                 return;
             }
 
