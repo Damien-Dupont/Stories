@@ -24,16 +24,9 @@ class ChapterController
 
             $chapters = $stmt->fetchAll();
 
-            echo json_encode([
-                'status' => 'ok',
-                'data' => $chapters
-            ]);
+            JsonResponse::success($chapters);
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            JsonResponse::error($e->getMessage(), 500);
         }
     }
 
@@ -57,24 +50,14 @@ class ChapterController
             $chapter = $stmt->fetch();
 
             if (!$chapter) {
-                http_response_code(404);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Chapter not found'
-                ]);
+                JsonResponse::error('Chapter not found', 404);
                 return;
             }
 
-            echo json_encode([
-                'status' => 'ok',
-                'data' => $chapter
-            ]);
+            JsonResponse::success($chapter);
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            JsonResponse::error($e->getMessage(), 500);
+
         }
     }
 
@@ -89,11 +72,7 @@ class ChapterController
 
             // Validation minimale
             if (!isset($input['work_id'])) {
-                http_response_code(400);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Missing required fields: work_id'
-                ]);
+                JsonResponse::error('Missing required fields: work_id', 400);
                 return;
             }
 
@@ -123,21 +102,12 @@ class ChapterController
 
             $result = $stmt->fetch();
 
-            http_response_code(201);
-            echo json_encode([
-                'status' => 'ok',
-                'message' => 'Chapter created',
-                'data' => [
-                    'id' => $result['id'],
-                    'created_at' => $result['created_at']
-                ]
+            JsonResponse::created('Chapter created', [
+                'id' => $result['id'],
+                'created_at' => $result['created_at']
             ]);
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            JsonResponse::error($e->getMessage(), 500);
         }
     }
 
@@ -168,11 +138,7 @@ class ChapterController
             }
 
             if (empty($fields)) {
-                http_response_code(400);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'No fields to update'
-                ]);
+                JsonResponse::error('No fields to update', 400);
                 return;
             }
 
@@ -184,24 +150,14 @@ class ChapterController
             $stmt->execute($params);
 
             if ($stmt->rowCount() === 0) {
-                http_response_code(404);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Chapter not found'
-                ]);
+                JsonResponse::error('Chapter not found', 404);
                 return;
             }
 
-            echo json_encode([
-                'status' => 'ok',
-                'message' => 'Chapter updated'
-            ]);
+            JsonResponse::success(null, 'Chapter updated');
+
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            JsonResponse::error($e->getMessage(), 500);
         }
     }
 
@@ -215,24 +171,13 @@ class ChapterController
             $stmt->execute(['id' => $id]);
 
             if ($stmt->rowCount() === 0) {
-                http_response_code(404);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Chapter not found'
-                ]);
+                JsonResponse::error('Chapter not found', 404);
                 return;
             }
 
-            echo json_encode([
-                'status' => 'ok',
-                'message' => 'Chapter deleted'
-            ]);
+            JsonResponse::success(null, 'Chapter deleted');
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            JsonResponse::error($e->getMessage(), 500);
         }
     }
 
@@ -251,16 +196,9 @@ class ChapterController
     //         $stmt->execute(['chapter_id' => $chapterId]);
     //         $scenes = $stmt->fetchAll();
 
-    //         echo json_encode([
-    //             'status' => 'ok',
-    //             'data' => $scenes
-    //         ]);
+    // JsonResponse::success($scenes);
     //     } catch (PDOException $e) {
-    //         http_response_code(500);
-    //         echo json_encode([
-    //             'status' => 'error',
-    //             'message' => $e->getMessage()
-    //         ]);
+    //          JsonResponse::error($e->getMessage(), 500);
     //     }
     // }
 
@@ -272,11 +210,7 @@ class ChapterController
     // {
     //     if (isset($input['scene_type']) && $input['scene_type'] === 'special') {
     //         if (isset($input['chapter_id']) && $input['chapter_id'] !== null) {
-    //             http_response_code(400);
-    //             echo json_encode([
-    //                 'status' => 'error',
-    //                 'message' => 'Special scenes cannot have a chapter_id'
-    //             ]);
+    //   JsonResponse::error('Special scenes cannot have a chapter_id', 400);
     //             exit; // ou throw new Exception()
     //         }
     //     }
