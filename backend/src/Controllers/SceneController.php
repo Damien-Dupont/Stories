@@ -30,16 +30,10 @@ class SceneController
 
             $scenes = $stmt->fetchAll();
 
-            echo json_encode([
-                'status' => 'ok',
-                'data' => $scenes
-            ]);
+            JsonResponse::success($scenes);
+
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            JsonResponse::error($e->getMessage(), 500);
         }
     }
 
@@ -63,24 +57,14 @@ class SceneController
             $scene = $stmt->fetch();
 
             if (!$scene) {
-                http_response_code(404);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Scene not found'
-                ]);
+                JsonResponse::error('Scene not found', 404);
                 return;
             }
 
-            echo json_encode([
-                'status' => 'ok',
-                'data' => $scene
-            ]);
+            JsonResponse::success($scene);
+
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            JsonResponse::error($e->getMessage(), 500);
         }
     }
 
@@ -95,11 +79,8 @@ class SceneController
 
             // Validation minimale
             if (!isset($input['content_markdown'])) {
-                http_response_code(400);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Missing required fields: content_markdown'
-                ]);
+
+                JsonResponse::error('Missing required field: content_markdown', 404);
                 return;
             }
 
@@ -142,21 +123,13 @@ class SceneController
 
             $result = $stmt->fetch();
 
-            http_response_code(201);
-            echo json_encode([
-                'status' => 'ok',
-                'message' => 'Scene created',
-                'data' => [
-                    'id' => $result['id'],
-                    'created_at' => $result['created_at']
-                ]
+            JsonResponse::created('Scene created', [
+                'id' => $result['id'],
+                'created_at' => $result['created_at']
             ]);
+
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            JsonResponse::error($e->getMessage(), 500);
         }
     }
 
@@ -194,11 +167,7 @@ class SceneController
             self::validateSpecialScene($input);
 
             if (empty($fields)) {
-                http_response_code(400);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'No fields to update'
-                ]);
+                JsonResponse::error('No fields to update', 400);
                 return;
             }
 
@@ -209,24 +178,14 @@ class SceneController
             $stmt->execute($params);
 
             if ($stmt->rowCount() === 0) {
-                http_response_code(404);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Scene not found'
-                ]);
+                JsonResponse::error('Scene not found', 404);
                 return;
             }
 
-            echo json_encode([
-                'status' => 'ok',
-                'message' => 'Scene updated'
-            ]);
+            JsonResponse::success(null, 'Scene updated');
+
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            JsonResponse::error($e->getMessage(), 500);
         }
     }
 
@@ -240,24 +199,14 @@ class SceneController
             $stmt->execute(['id' => $id]);
 
             if ($stmt->rowCount() === 0) {
-                http_response_code(404);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Scene not found'
-                ]);
+                JsonResponse::error('Scene not found', 404);
                 return;
             }
 
-            echo json_encode([
-                'status' => 'ok',
-                'message' => 'Scene deleted'
-            ]);
+            JsonResponse::success(null, 'Scene deleted');
+
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            JsonResponse::error($e->getMessage(), 500);
         }
     }
 
@@ -276,16 +225,10 @@ class SceneController
             $stmt->execute(['chapter_id' => $chapterId]);
             $scenes = $stmt->fetchAll();
 
-            echo json_encode([
-                'status' => 'ok',
-                'data' => $scenes
-            ]);
+            JsonResponse::success($scenes);
+
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            JsonResponse::error($e->getMessage(), 500);
         }
     }
 
@@ -297,11 +240,9 @@ class SceneController
     {
         if (isset($input['scene_type']) && $input['scene_type'] === 'special') {
             if (isset($input['chapter_id']) && $input['chapter_id'] !== null) {
-                http_response_code(400);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Special scenes cannot have a chapter_id'
-                ]);
+
+                JsonResponse::error('Special scenes cannot have a chapter_id', 400);
+
                 exit; // ou throw new Exception()
             }
         }
