@@ -18,18 +18,9 @@ class WorkController
 
             $works = $stmt->fetchAll();
 
-            http_response_code(200);
-            echo json_encode([
-                'status' => 'ok',
-                'data' => $works
-            ]);
+            JsonResponse::success($works);
         } catch (PDOException $e) {
-
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            JsonResponse::error($e->getMessage(), 500);
         }
     }
 
@@ -52,24 +43,14 @@ class WorkController
             $work = $stmt->fetch();
 
             if (!$work) {
-                http_response_code(404);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Work not found'
-                ]);
+                JsonResponse::error('Work not found', 404);
                 return;
             }
 
-            echo json_encode([
-                'status' => 'ok',
-                'data' => $work
-            ]);
+            JsonResponse::success($work);
+
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            JsonResponse::error($e->getMessage(), 500);
         }
     }
 
@@ -86,11 +67,7 @@ class WorkController
             $input = json_decode(file_get_contents('php://input'), true);
 
             if (!isset($input['title']) || trim($input['title']) === '') {
-                http_response_code(400);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Missing required field: title'
-                ]);
+                JsonResponse::error('Missing required field: title', 400);
                 return;
             }
 
@@ -113,21 +90,13 @@ class WorkController
 
             $result = $stmt->fetch();
 
-            http_response_code(201);
-            echo json_encode([
-                'status' => 'ok',
-                'message' => 'work created',
-                'data' => [
-                    'id' => $result['id'],
-                    'created_at' => $result['created_at']
-                ]
+            JsonResponse::created('work created', [
+                'id' => $result['id'],
+                'created_at' => $result['created_at']
             ]);
+
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            JsonResponse::error($e->getMessage(), 500);
         }
     }
 
@@ -166,11 +135,7 @@ class WorkController
             }
 
             if (empty($fields)) {
-                http_response_code(400);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'No fields to update'
-                ]);
+                JsonResponse::error('No fields to update', 400);
                 return;
             }
 
@@ -181,24 +146,14 @@ class WorkController
             $stmt->execute($params);
 
             if ($stmt->rowCount() === 0) {
-                http_response_code(404);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Work not found'
-                ]);
+                JsonResponse::error('Work not found', 404);
                 return;
             }
 
-            echo json_encode([
-                'status' => 'ok',
-                'message' => 'Work updated'
-            ]);
+            JsonResponse::success(null, 'Work updated');
+
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            JsonResponse::error($e->getMessage(), 500);
         }
     }
 
@@ -217,24 +172,13 @@ class WorkController
             $stmt->execute(['id' => $id]);
 
             if ($stmt->rowCount() === 0) {
-                http_response_code(404);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'Work not found'
-                ]);
+                JsonResponse::error('Work not found', 404);
                 return;
             }
-            echo json_encode([
-                'status' => 'ok',
-                'message' => 'Work deleted'
-            ]);
+            JsonResponse::success(null, 'Work deleted');
 
         } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ]);
+            JsonResponse::error($e->getMessage(), 500);
         }
     }
 }

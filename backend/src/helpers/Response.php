@@ -37,3 +37,6 @@ class JsonResponse
 // JsonResponse::success($data);
 //  JsonResponse::error('Transition not found', 404);
 // JsonResponse::error('No fields to update', 400);
+// JsonResponse::created('',$data);
+
+//   JsonResponse::error($e->getMessage(), 500);
