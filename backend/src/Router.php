@@ -10,6 +10,15 @@ class Router
         $this->pdo = $pdo;
     }
 
+    private function callhandler(callable|array $handler, mixed ...$params): void
+    {
+        try {
+            call_user_func($handler, $this->pdo, ...$params);
+        } catch (PDOexception $e) {
+            JsonResponse::error('Database error', 500);
+        }
+    }
+
     public function get(string $path, callable|array $handler): void
     {
         $this->addRoute('GET', $path, $handler);
@@ -52,8 +61,9 @@ class Router
 
             // Matching exact
             if ($route['path'] === $path) {
-                call_user_func($route['handler'], $this->pdo);
+                $this->callhandler($route['handler']);
                 return;
+
             }
 
             // Matching avec paramètres (ex: /scenes/{id})
@@ -62,13 +72,11 @@ class Router
 
             if (preg_match($pattern, $path, $matches)) {
                 array_shift($matches); // Enlever le match complet
-                call_user_func($route['handler'], $this->pdo, ...$matches);
+                $this->callhandler($route['handler'], ...$matches);
                 return;
             }
         }
 
-        // Route non trouvée
-        http_response_code(404);
-        echo json_encode(['status' => 'error', 'message' => 'Route not found']);
+        JsonResponse::error('Route not found', 404);
     }
 }
