@@ -219,7 +219,7 @@ class SceneController
             $stmt = $pdo->prepare('
                 SELECT * FROM scenes
                 WHERE chapter_id = :chapter_id
-                ORDER BY order_hint
+                ORDER BY global_order
             ');
 
             $stmt->execute(['chapter_id' => $chapterId]);
