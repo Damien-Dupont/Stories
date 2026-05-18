@@ -19,7 +19,7 @@ export function ScenePage() {
       contentMarkdown={scene?.content_markdown ?? ""}
       nextTransitions={nextTransitions ?? []}
       prevTransitions={prevTransitions ?? []}
-      onTransitionClick={(sceneId) => navigate(`/scene/${sceneId}`)}
+      onTransitionClick={(sceneId) => navigate(`/scenes/${sceneId}`)}
     />
   );
 }
